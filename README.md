@@ -4,7 +4,7 @@
 * The script is used to retrieve sub-only and deleted videos from twitch.
 * Credits to daylamtayari - TwitchRecover repository helped with the logic to recover twitch videos.
 
-# Script requirements
+# Script Requirements
 * MUST have python installed.
 * MUST have additional packages installed (ie.. Requests)
 
