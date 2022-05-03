@@ -18,6 +18,7 @@ import os
 * 1.2 - Refactored date check and added a main.
 * 1.3 - Refactored code to retrieve the formatted date.
 * 1.4 - Refactored retrieving valid links and main.
+* 1.5 - Fixed unmuting speed.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -117,21 +118,21 @@ def unmute_vod():
     with open(generate_unmuted_filename(), "r") as append_file:
         for line in append_file.readlines():
             list_of_lines.append(line)
-            append_file.close()
-            counter = 0
-            with open(generate_unmuted_filename(), "w") as file:
-                for segment in list_of_lines:
-                    url = link_response.url.replace("index-dvr.m3u8", "")
-                    if "-unmuted" in segment and not segment.startswith("#"):
-                        counter += 1
-                        file.write(
-                            segment.replace(segment, str(url) + str(counter - 1)) + "-muted.ts" + "\n")
-                    elif "-unmuted" not in segment and not segment.startswith("#"):
-                        counter += 1
-                        file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
-                    else:
-                        file.write(segment)
-            file.close()
+    append_file.close()
+    counter = 0
+    with open(generate_unmuted_filename(), "w") as file:
+        for segment in list_of_lines:
+            url = link_response.url.replace("index-dvr.m3u8", "")
+            if "-unmuted" in segment and not segment.startswith("#"):
+                counter += 1
+                file.write(
+                    segment.replace(segment, str(url) + str(counter - 1)) + "-muted.ts" + "\n")
+            elif "-unmuted" not in segment and not segment.startswith("#"):
+                counter += 1
+                file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
+            else:
+                 file.write(segment)
+    file.close()
     print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
 
 def recover_vod():
