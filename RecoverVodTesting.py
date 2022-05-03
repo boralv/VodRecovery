@@ -15,6 +15,7 @@ import os
 *
 * 1.0 - Initial Release - May 3rd, 2022
 * 1.1 - Renamed variables, refactored code to implement methods, added conditionals.
+* 1.2 - Refactored date check and added a main.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -44,6 +45,9 @@ streamer_name = input("Enter streamer name: ").strip()
 vodID = input("Enter vod id: ").strip()
 timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
 
+def get_url(url):
+    return requests.get(url, timeout=100)
+
 def get_default_directory():
     default_directory = os.path.expanduser("~\\Documents\\")
     return default_directory
@@ -54,18 +58,19 @@ def generate_unmuted_filename():
 
 formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
 
-days_between = datetime.datetime.today() - formatted_date
+def get_vod_age():
+    bool_vod_expired = False
+    days_between = datetime.datetime.today() - formatted_date
+    return days_between.days
 
-if days_between > timedelta(days=60):
-    print("Vod is " + str(days_between.days) + " days old. Vods typically cannot be recovered when older then 60 days.")
-    user_continue = input("Do you want to continue (Y/N): ")
-    if user_continue.upper() == "Y":
-        pass
+def is_vod_date_less_60():
+    bool_vod_expired = False
+    days_between = datetime.datetime.today() - formatted_date
+    if days_between > timedelta(days=60):
+        bool_vod_expired = True
     else:
-        exit()
-
-def get_url(url):
-    return requests.get(url, timeout=100)
+        bool_vod_expired = False
+    return bool_vod_expired
 
 for bf_second in range(60):
     vod_date = datetime.datetime(formatted_date.year,formatted_date.month,formatted_date.day,formatted_date.hour,formatted_date.minute,bf_second)
@@ -129,15 +134,24 @@ def unmute_vod():
             file.close()
     print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
 
-if return_valid_links():
-    if bool_is_muted:
-        print("Vod contains muted segments")
-        bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
-        if bool_unmute_vod.upper() == "Y":
-            unmute_vod()
+def recover_vod():
+    if return_valid_links():
+        if bool_is_muted:
+            print("Vod contains muted segments")
+            bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
+            if bool_unmute_vod.upper() == "Y":
+                unmute_vod()
+        else:
+            print("Vod does NOT contain muted segments")
     else:
-        print("Vod does NOT contain muted segments")
-else:
-    print("No vods found using current domain list.")
+        print("No vods found using current domain list.")
 
-input("Press Enter to exit!")
+if is_vod_date_less_60():
+    print("Vod is " + str(get_vod_age()) + " days old. Vods typically cannot be recovered when older then 60 days.")
+    user_continue = input("Do you want to continue (Y/N): ")
+    if user_continue.upper() == "Y":
+        recover_vod()
+    else:
+        exit()
+else:
+    recover_vod()
