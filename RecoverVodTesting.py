@@ -17,6 +17,7 @@ import os
 * 1.1 - Renamed variables, refactored code to implement methods, added conditionals.
 * 1.2 - Refactored date check and added a main.
 * 1.3 - Refactored code to retrieve the formatted date.
+* 1.4 - Refactored retrieving valid links and main.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -66,7 +67,7 @@ def get_vod_age():
     days_between = datetime.datetime.today() - format_timestamp(timestamp)
     return days_between.days
 
-def is_vod_date_less_60():
+def is_vod_date_greater_60():
     bool_vod_expired = False
     days_between = datetime.datetime.today() - format_timestamp(timestamp)
     if days_between > timedelta(days=60):
@@ -75,32 +76,28 @@ def is_vod_date_less_60():
         bool_vod_expired = False
     return bool_vod_expired
 
-for bf_second in range(60):
-    vod_date = datetime.datetime(format_timestamp(timestamp).year,format_timestamp(timestamp).month,format_timestamp(timestamp).day,format_timestamp(timestamp).hour,format_timestamp(timestamp).minute,bf_second)
-    converted_timestamp = round(time.mktime(vod_date.timetuple()))
-    base_url = streamer_name + "_" + vodID + "_" + str(int(converted_timestamp))
-    hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
-    formatted_base_url = hashed_base_url + '_' +  base_url
-    for domain in domains:
-        url = domain+formatted_base_url+"/chunked/index-dvr.m3u8"
-        all_possible_urls.append(url)
-
-with ThreadPoolExecutor(max_workers=100) as pool:
-    max_url_list_length = 100
-    current_list = all_possible_urls
-
-    for i in range(0, len(current_list), max_url_list_length):
-        batch = current_list[i:i + max_url_list_length]
-        response_list = list(pool.map(get_url, batch))
-        for m3u8_url in response_list:
-            if m3u8_url.status_code == 200:
-                print(m3u8_url.url)
-                valid_url_list.append(m3u8_url.url)
-
-def return_valid_links():
-    if valid_url_list:
-        for link in valid_url_list:
-            return link
+def get_valid_links():
+    for bf_second in range(60):
+        vod_date = datetime.datetime(format_timestamp(timestamp).year,format_timestamp(timestamp).month,format_timestamp(timestamp).day,format_timestamp(timestamp).hour,format_timestamp(timestamp).minute,bf_second)
+        converted_timestamp = round(time.mktime(vod_date.timetuple()))
+        base_url = streamer_name + "_" + vodID + "_" + str(int(converted_timestamp))
+        hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
+        formatted_base_url = hashed_base_url + '_' +  base_url
+        for domain in domains:
+            url = domain+formatted_base_url+"/chunked/index-dvr.m3u8"
+            all_possible_urls.append(url)
+    with ThreadPoolExecutor(max_workers=100) as pool:
+        max_url_list_length = 100
+        current_list = all_possible_urls
+        for i in range(0, len(current_list), max_url_list_length):
+            batch = current_list[i:i + max_url_list_length]
+            response_list = list(pool.map(get_url, batch))
+            for m3u8_url in response_list:
+                if m3u8_url.status_code == 200:
+                    valid_url_list.append(m3u8_url.url)
+        for valid_url in valid_url_list:
+            print(valid_url)
+    return valid_url_list
 
 
 def bool_is_muted():
@@ -124,13 +121,13 @@ def unmute_vod():
             counter = 0
             with open(generate_unmuted_filename(), "w") as file:
                 for segment in list_of_lines:
+                    url = link_response.url.replace("index-dvr.m3u8", "")
                     if "-unmuted" in segment and not segment.startswith("#"):
-                        counter = counter + 1
-                        url = link_response.url.replace("index-dvr.m3u8", "")
+                        counter += 1
                         file.write(
                             segment.replace(segment, str(url) + str(counter - 1)) + "-muted.ts" + "\n")
                     elif "-unmuted" not in segment and not segment.startswith("#"):
-                        counter = counter + 1
+                        counter += 1
                         file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
                     else:
                         file.write(segment)
@@ -138,7 +135,7 @@ def unmute_vod():
     print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
 
 def recover_vod():
-    if return_valid_links():
+    if get_valid_links():
         if bool_is_muted:
             print("Vod contains muted segments")
             bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
@@ -149,12 +146,14 @@ def recover_vod():
     else:
         print("No vods found using current domain list.")
 
-if is_vod_date_less_60():
+
+if not is_vod_date_greater_60():
+    recover_vod()
+else:
     print("Vod is " + str(get_vod_age()) + " days old. Vods typically cannot be recovered when older then 60 days.")
     user_continue = input("Do you want to continue (Y/N): ")
     if user_continue.upper() == "Y":
         recover_vod()
     else:
         exit()
-else:
-    recover_vod()
+
