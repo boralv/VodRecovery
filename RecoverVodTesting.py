@@ -16,6 +16,7 @@ import os
 * 1.0 - Initial Release - May 3rd, 2022
 * 1.1 - Renamed variables, refactored code to implement methods, added conditionals.
 * 1.2 - Refactored date check and added a main.
+* 1.3 - Refactored code to retrieve the formatted date.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -48,6 +49,10 @@ timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
 def get_url(url):
     return requests.get(url, timeout=100)
 
+def format_timestamp(vod_datetime):
+    formatted_date = datetime.datetime.strptime(vod_datetime, "%Y-%m-%d %H:%M:%S")
+    return formatted_date
+
 def get_default_directory():
     default_directory = os.path.expanduser("~\\Documents\\")
     return default_directory
@@ -56,16 +61,14 @@ def generate_unmuted_filename():
     unmuted_file_name = get_default_directory()+"VodRecovery_" + vodID + ".m3u8"
     return unmuted_file_name
 
-formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-
 def get_vod_age():
     bool_vod_expired = False
-    days_between = datetime.datetime.today() - formatted_date
+    days_between = datetime.datetime.today() - format_timestamp(timestamp)
     return days_between.days
 
 def is_vod_date_less_60():
     bool_vod_expired = False
-    days_between = datetime.datetime.today() - formatted_date
+    days_between = datetime.datetime.today() - format_timestamp(timestamp)
     if days_between > timedelta(days=60):
         bool_vod_expired = True
     else:
@@ -73,7 +76,7 @@ def is_vod_date_less_60():
     return bool_vod_expired
 
 for bf_second in range(60):
-    vod_date = datetime.datetime(formatted_date.year,formatted_date.month,formatted_date.day,formatted_date.hour,formatted_date.minute,bf_second)
+    vod_date = datetime.datetime(format_timestamp(timestamp).year,format_timestamp(timestamp).month,format_timestamp(timestamp).day,format_timestamp(timestamp).hour,format_timestamp(timestamp).minute,bf_second)
     converted_timestamp = round(time.mktime(vod_date.timetuple()))
     base_url = streamer_name + "_" + vodID + "_" + str(int(converted_timestamp))
     hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
