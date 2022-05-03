@@ -18,6 +18,11 @@
 2. Sullygnome.com
 3. Streamscharts.com
 
+# Optional IDE
+* Python has a few code editors that can be used which include the following:
+1. PyCharm
+2. Visual Studio Code
+
 # Additional Notes
 * If creating an issue for a problem that your experiencing please provide atleast 1 example.
 * If you are not getting results back from the script. Please try vods from other streamers, if the other streamers vods give you results then the original vods you were trying probably just don't exist. 
