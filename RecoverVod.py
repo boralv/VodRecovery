@@ -5,6 +5,7 @@ import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import os
+import random
 
 """
 * Created By: ItIckeYd 
@@ -20,6 +21,7 @@ import os
 * 1.4 - Refactored retrieving valid links and main.
 * 1.5 - Fixed unmuting speed.
 * 1.6 - Fixed bug where script was only returning "Vod contains muted segments"
+* 1.7 - Added functionality to check 100 random segments status codes.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -43,14 +45,14 @@ domains = ["https://vod-secure.twitch.tv/",
 all_possible_urls = []
 valid_url_list = []
 list_of_lines = []
-
+segment_list = []
 
 streamer_name = input("Enter streamer name: ").strip()
 vodID = input("Enter vod id: ").strip()
 timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
 
 def get_url(url):
-    return requests.get(url, timeout=100)
+    return requests.get(url,stream=True)
 
 def format_timestamp(vod_datetime):
     formatted_date = datetime.datetime.strptime(vod_datetime, "%Y-%m-%d %H:%M:%S")
@@ -65,14 +67,11 @@ def generate_unmuted_filename():
     return unmuted_file_name
 
 def get_vod_age():
-    bool_vod_expired = False
-    days_between = datetime.datetime.today() - format_timestamp(timestamp)
-    return days_between.days
+    return datetime.datetime.today() - format_timestamp(timestamp)
 
 def is_vod_date_greater_60():
     bool_vod_expired = False
-    days_between = datetime.datetime.today() - format_timestamp(timestamp)
-    if days_between > timedelta(days=60):
+    if get_vod_age() > timedelta(days=60):
         bool_vod_expired = True
     else:
         bool_vod_expired = False
@@ -101,7 +100,6 @@ def get_valid_links():
             print(valid_url)
     return valid_url_list
 
-
 def bool_is_muted():
     vod_response = get_url(valid_url_list[0])
     if "unmuted" in vod_response.text:
@@ -127,13 +125,33 @@ def unmute_vod():
                 counter += 1
                 file.write(
                     segment.replace(segment, str(url) + str(counter - 1)) + "-muted.ts" + "\n")
+                segment_list.append(str(url) + str(counter - 1) + "-muted.ts")
             elif "-unmuted" not in segment and not segment.startswith("#"):
                 counter += 1
                 file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
+                segment_list.append(str(url) + str(counter - 1) + ".ts")
             else:
                  file.write(segment)
     file.close()
     print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
+
+
+def get_number_of_segments():
+    return len(segment_list)
+
+def check_segment_availability():
+    valid_segment_counter = 0
+    random.shuffle(segment_list)
+    with ThreadPoolExecutor(max_workers=100) as pool:
+        max_url_list_length = 25
+        current_list = segment_list[0:100]
+        for i in range(0, len(current_list), max_url_list_length):
+            batch = current_list[i:i + max_url_list_length]
+            response_list = list(pool.map(get_url, batch))
+            for segment_response in response_list:
+                if segment_response.status_code == 200:
+                    valid_segment_counter +=1
+    return valid_segment_counter
 
 def recover_vod():
     if get_valid_links():
@@ -142,16 +160,21 @@ def recover_vod():
             bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
             if bool_unmute_vod.upper() == "Y":
                 unmute_vod()
+                print("Total Number of Segments: " + str(get_number_of_segments()))
+                check_segment = input("Would you like to check if segments are valid (Y/N): ")
+                if check_segment.upper() == "Y":
+                    print("Out of the 100 random segments checked " + str(check_segment_availability()) + " are valid")
+                else:
+                    pass
         else:
             print("Vod does NOT contain muted segments")
     else:
         print("No vods found using current domain list.")
 
-
 if not is_vod_date_greater_60():
     recover_vod()
 else:
-    print("Vod is " + str(get_vod_age()) + " days old. Vods typically cannot be recovered when older then 60 days.")
+    print("Vod is " + str(get_vod_age().days) + " days old. Vods typically cannot be recovered when older then 60 days.")
     user_continue = input("Do you want to continue (Y/N): ")
     if user_continue.upper() == "Y":
         recover_vod()
