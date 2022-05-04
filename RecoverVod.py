@@ -19,6 +19,7 @@ import os
 * 1.3 - Refactored code to retrieve the formatted date.
 * 1.4 - Refactored retrieving valid links and main.
 * 1.5 - Fixed unmuting speed.
+* 1.6 - Fixed bug where script was only returning "Vod contains muted segments"
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -102,12 +103,11 @@ def get_valid_links():
 
 
 def bool_is_muted():
-    is_muted = False
     vod_response = get_url(valid_url_list[0])
-    if "-unmuted" not in vod_response.text:
-        is_muted = False
+    if "unmuted" in vod_response.text:
+       is_muted = True
     else:
-        is_muted = True
+        is_muted = False
     return is_muted
 
 def unmute_vod():
@@ -137,7 +137,7 @@ def unmute_vod():
 
 def recover_vod():
     if get_valid_links():
-        if bool_is_muted:
+        if bool_is_muted():
             print("Vod contains muted segments")
             bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
             if bool_unmute_vod.upper() == "Y":
