@@ -166,7 +166,7 @@ def recover_vod():
                     if valid_segments < 100:
                         print("Out of the 100 random segments checked " + str(valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
                     else:
-                        print("All segments are valid.")
+                        print("All segments that were checked are valid.")
                 else:
                     pass
         else:
