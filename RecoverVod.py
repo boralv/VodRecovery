@@ -70,7 +70,6 @@ def get_vod_age():
     return datetime.datetime.today() - format_timestamp(timestamp)
 
 def is_vod_date_greater_60():
-    bool_vod_expired = False
     if get_vod_age() > timedelta(days=60):
         bool_vod_expired = True
     else:
@@ -135,9 +134,8 @@ def unmute_vod():
     file.close()
     print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
 
-
-def get_number_of_segments():
-    return len(segment_list)
+def get_number_of_segments(list):
+    return len(list)
 
 def check_segment_availability():
     valid_segment_counter = 0
@@ -160,16 +158,21 @@ def recover_vod():
             bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
             if bool_unmute_vod.upper() == "Y":
                 unmute_vod()
-                print("Total Number of Segments: " + str(get_number_of_segments()))
+                print("Total Number of Segments: " + str(get_number_of_segments(segment_list)))
                 check_segment = input("Would you like to check if segments are valid (Y/N): ")
+                valid_segments = check_segment_availability()
                 if check_segment.upper() == "Y":
-                    print("Out of the 100 random segments checked " + str(check_segment_availability()) + " are valid")
+                    if valid_segments < 100:
+                        print("Out of the 100 random segments checked " + str(valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
+                    else:
+                        print("Out of the 100 random segments checked " + str(valid_segments) + " are valid.")
                 else:
                     pass
         else:
             print("Vod does NOT contain muted segments")
     else:
         print("No vods found using current domain list.")
+
 
 if not is_vod_date_greater_60():
     recover_vod()
@@ -180,4 +183,3 @@ else:
         recover_vod()
     else:
         exit()
-
