@@ -22,6 +22,7 @@ import random
 * 1.5 - Fixed unmuting speed.
 * 1.6 - Fixed bug where script was only returning "Vod contains muted segments"
 * 1.7 - Added functionality to check 100 random segments status codes.
+* 1.8 - Added output for the user when segments are not available.
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -165,7 +166,7 @@ def recover_vod():
                     if valid_segments < 100:
                         print("Out of the 100 random segments checked " + str(valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
                     else:
-                        print("Out of the 100 random segments checked " + str(valid_segments) + " are valid.")
+                        print("All segments are valid.")
                 else:
                     pass
         else:
