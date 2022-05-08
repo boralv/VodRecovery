@@ -10,6 +10,7 @@
 
 # Script Notes
 * The script CANNOT recover every single vod. The script can only recover vods that still exist on the twitch vod domains.
+* Due to twitch's deletion process vods are typically only available up to 60 day old. The script will notify you if its only then 60 days.
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
