@@ -23,6 +23,7 @@ import random
 * 1.6 - Fixed bug where script was only returning "Vod contains muted segments"
 * 1.7 - Added functionality to check 100 random segments status codes.
 * 1.8 - Added output for the user when segments are not available.
+* 1.9 - Added functionality to check segment availability if the vod does not contain muted segments
 """
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -63,7 +64,7 @@ def get_default_directory():
     default_directory = os.path.expanduser("~\\Documents\\")
     return default_directory
 
-def generate_unmuted_filename():
+def generate_vod_filename():
     unmuted_file_name = get_default_directory()+"VodRecovery_" + vodID + ".m3u8"
     return unmuted_file_name
 
@@ -76,6 +77,10 @@ def is_vod_date_greater_60():
     else:
         bool_vod_expired = False
     return bool_vod_expired
+
+def remove_file(file_path):
+    if os.path.exists(file_path):
+        return os.remove(file_path)
 
 def get_valid_links():
     for bf_second in range(60):
@@ -110,15 +115,15 @@ def bool_is_muted():
 
 def unmute_vod():
     link_response = get_url(valid_url_list[0])
-    temp_file = open(generate_unmuted_filename(), "w")
+    temp_file = open(generate_vod_filename(), "w")
     temp_file.write(link_response.text)
     temp_file.close()
-    with open(generate_unmuted_filename(), "r") as append_file:
+    with open(generate_vod_filename(), "r") as append_file:
         for line in append_file.readlines():
             list_of_lines.append(line)
     append_file.close()
     counter = 0
-    with open(generate_unmuted_filename(), "w") as file:
+    with open(generate_vod_filename(), "w") as file:
         for segment in list_of_lines:
             url = link_response.url.replace("index-dvr.m3u8", "")
             if "-unmuted" in segment and not segment.startswith("#"):
@@ -133,7 +138,28 @@ def unmute_vod():
             else:
                  file.write(segment)
     file.close()
-    print(os.path.basename(generate_unmuted_filename())+" Has been unmuted. File can be found in " + generate_unmuted_filename())
+    print(os.path.basename(generate_vod_filename())+" Has been unmuted. File can be found in " + generate_vod_filename())
+
+def create_temp_vod_file():
+    link_response = get_url(valid_url_list[0])
+    temp_file = open(generate_vod_filename(), "w")
+    temp_file.write(link_response.text)
+    temp_file.close()
+    with open(generate_vod_filename(), "r") as append_file:
+        for line in append_file.readlines():
+            list_of_lines.append(line)
+    append_file.close()
+    counter = 0
+    with open(generate_vod_filename(), "w") as file:
+        for segment in list_of_lines:
+            url = link_response.url.replace("index-dvr.m3u8", "")
+            if "-unmuted" not in segment and not segment.startswith("#"):
+                counter += 1
+                file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
+                segment_list.append(str(url) + str(counter - 1) + ".ts")
+            else:
+                file.write(segment)
+    file.close()
 
 def get_number_of_segments(list):
     return len(list)
@@ -171,6 +197,20 @@ def recover_vod():
                     pass
         else:
             print("Vod does NOT contain muted segments")
+            check_segment = input("Would you like to check if segments are valid (Y/N): ")
+            create_temp_vod_file()
+            valid_segments = check_segment_availability()
+            if check_segment.upper() == "Y":
+                if valid_segments < 100:
+                    print("Out of the 100 random segments checked " + str(
+                        valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
+                    remove_file(generate_vod_filename())
+                else:
+                    print("All segments that were checked are valid.")
+                    remove_file(generate_vod_filename())
+            else:
+                pass
+
     else:
         print("No vods found using current domain list.")
 
