@@ -1,7 +1,6 @@
 import time
 from datetime import timedelta
 import datetime
-import pytz
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import requests
@@ -49,8 +48,6 @@ all_possible_urls = []
 valid_url_list = []
 list_of_lines = []
 segment_list = []
-
-print("**Welcome To Vod Recovery**")
 
 streamer_name = input("Enter streamer name: ").strip()
 vodID = input("Enter vod id: ").strip()
