@@ -1,6 +1,7 @@
+import time
 from datetime import timedelta
 import datetime
-import time
+import pytz
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import requests
@@ -48,6 +49,8 @@ all_possible_urls = []
 valid_url_list = []
 list_of_lines = []
 segment_list = []
+
+print("**Welcome To Vod Recovery**")
 
 streamer_name = input("Enter streamer name: ").strip()
 vodID = input("Enter vod id: ").strip()
@@ -167,7 +170,7 @@ def get_number_of_segments(list):
 def check_segment_availability():
     valid_segment_counter = 0
     random.shuffle(segment_list)
-    with ThreadPoolExecutor(max_workers=100) as pool:
+    with ThreadPoolExecutor(max_workers=50) as pool:
         max_url_list_length = 25
         current_list = segment_list[0:100]
         for i in range(0, len(current_list), max_url_list_length):
@@ -198,9 +201,9 @@ def recover_vod():
         else:
             print("Vod does NOT contain muted segments")
             check_segment = input("Would you like to check if segments are valid (Y/N): ")
-            create_temp_vod_file()
-            valid_segments = check_segment_availability()
             if check_segment.upper() == "Y":
+                create_temp_vod_file()
+                valid_segments = check_segment_availability()
                 if valid_segments < 100:
                     print("Out of the 100 random segments checked " + str(
                         valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
