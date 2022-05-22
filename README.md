@@ -21,6 +21,10 @@
 * MUST download CSV file from sullygnome
 * MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
 
+# Download Clips
+* Download clips requires the tracker url
+* The script looks for the name of the file that the clip finder scripts create.
+* The script will ask how many lines to be skipped.. put 0 if your using my clip recovery scripts.
 
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
