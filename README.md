@@ -14,6 +14,10 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
+# Clip Recovery
+* Scripts are very simple and should be very easy to run. 
+* Additional scripts will follow that will allow for the downloading of clips as well as recovery of clips from multiple vods up to 100.
+
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
 1. TwitchTracker.com
