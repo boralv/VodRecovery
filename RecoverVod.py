@@ -5,7 +5,6 @@ import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import os
-import random
 
 """
 * Created By: ItIckeYd 
@@ -55,6 +54,9 @@ timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
 
 def get_url(url):
     return requests.get(url,stream=True)
+
+def get_head(url):
+    return requests.head(url,stream=True)
 
 def format_timestamp(vod_datetime):
     formatted_date = datetime.datetime.strptime(vod_datetime, "%Y-%m-%d %H:%M:%S")
@@ -166,13 +168,12 @@ def get_number_of_segments(list):
 
 def check_segment_availability():
     valid_segment_counter = 0
-    random.shuffle(segment_list)
     with ThreadPoolExecutor(max_workers=50) as pool:
-        max_url_list_length = 25
-        current_list = segment_list[0:100]
+        max_url_list_length = 500
+        current_list = segment_list
         for i in range(0, len(current_list), max_url_list_length):
             batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(get_url, batch))
+            response_list = list(pool.map(get_head, batch))
             for segment_response in response_list:
                 if segment_response.status_code == 200:
                     valid_segment_counter +=1
@@ -189,28 +190,17 @@ def recover_vod():
                 check_segment = input("Would you like to check if segments are valid (Y/N): ")
                 valid_segments = check_segment_availability()
                 if check_segment.upper() == "Y":
-                    if valid_segments < 100:
-                        print("Out of the 100 random segments checked " + str(valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
-                    else:
-                        print("All segments that were checked are valid.")
-                else:
-                    pass
+                    print(str(valid_segments) + " of " + str(get_number_of_segments(segment_list)) + " segments are valid.")
         else:
             print("Vod does NOT contain muted segments")
             check_segment = input("Would you like to check if segments are valid (Y/N): ")
             if check_segment.upper() == "Y":
                 create_temp_vod_file()
                 valid_segments = check_segment_availability()
-                if valid_segments < 100:
-                    print("Out of the 100 random segments checked " + str(
-                        valid_segments) + " are valid. Due to segments not being available the vod may not be playable at certain places or at all.")
-                    remove_file(generate_vod_filename())
-                else:
-                    print("All segments that were checked are valid.")
-                    remove_file(generate_vod_filename())
+                print(str(valid_segments) + " of " + str(get_number_of_segments(segment_list)) + " segments are valid.")
+                remove_file(generate_vod_filename())
             else:
                 pass
-
     else:
         print("No vods found using current domain list.")
 
