@@ -17,7 +17,7 @@
 # Clip Recovery
 * Scripts are very simple and should be very easy to run. 
 
-#Bulk Clip Recovery
+# Bulk Clip Recovery
 * MUST download CSV file from sullygnome
 * MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
 
