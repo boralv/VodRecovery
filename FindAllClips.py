@@ -42,8 +42,8 @@ reps = ((duration * 60) + 2000) * 2
 print("Duration: " + str(duration))
 print("Possible Urls: " + str(reps))
 
-def get_url(url):
-    return requests.get(url, timeout=100, stream=True)
+def get_head(url):
+    return requests.head(url, timeout=100, stream=True)
 
 original_vod_url_list = ["https://clips-media-assets2.twitch.tv/"+vod_id+"-offset-" + str(i) + ".mp4" for i in range(reps) if i % 2 == 0]
 
@@ -51,12 +51,12 @@ valid_counter = 0
 
 with ThreadPoolExecutor(max_workers=100) as pool:
     url_list = []
-    max_url_list_length = 50
+    max_url_list_length = 250
     current_list = original_vod_url_list
 
     for i in range(0, len(original_vod_url_list), max_url_list_length):
         batch = current_list[i:i+max_url_list_length]
-        response_list = list(pool.map(get_url, batch))
+        response_list = list(pool.map(get_head, batch))
         for x in response_list:
             url_list.append(x)
             if x.status_code == 200:
