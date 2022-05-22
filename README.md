@@ -16,7 +16,11 @@
 
 # Clip Recovery
 * Scripts are very simple and should be very easy to run. 
-* Additional scripts will follow that will allow for the downloading of clips as well as recovery of clips from multiple vods up to 100.
+
+# Bulk Clip Recovery
+* MUST download CSV file from sullygnome
+* MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
+
 
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
