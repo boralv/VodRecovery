@@ -14,6 +14,9 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
+# Timezones
+* Timezones are listed in the 'timezones.txt' file in the repository.
+
 # Clip Recovery
 * Scripts are very simple and should be very easy to run. 
 
