@@ -14,6 +14,24 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
+# Timezones
+* Timezones are listed in the 'timezones.txt' file in the repository.
+
+Powershell (Run as administrator)
+
+1. Get local timezone
+```
+Get-TimeZone 
+```
+2. Output local timezone to text file
+```
+Get-TimeZone | Out-File -FilePath C:\Users\USER_NAME\Documents\localtimezone.txt
+```
+3. Output all timezones to text file
+```
+Get-TimeZone -ListAvailable | Out-File -FilePath C:\Users\USER_NAME\Documents\timezone.txt
+``` 
+
 # Clip Recovery
 * Scripts are very simple and should be very easy to run. 
 
