@@ -1,6 +1,5 @@
 import random
 import time
-from datetime import timedelta
 import datetime
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
@@ -37,6 +36,12 @@ def return_request_response(url):
 def return_request_head(url):
     return requests.head(url)
 
+def check_user_response(user_bool):
+    return bool(user_bool.upper() == "Y")
+
+def check_status_code(status_code):
+    return bool(status_code == 200)
+
 def get_default_directory():
     default_directory = os.path.expanduser("~\\Documents\\")
     return default_directory
@@ -59,13 +64,6 @@ def format_timestamp(timestamp):
 
 def get_vod_age(timestamp):
     return datetime.datetime.today() - format_timestamp(timestamp)
-
-def is_vod_date_greater_60(timestamp):
-    if get_vod_age(timestamp) > timedelta(days=60):
-        bool_vod_expired = True
-    else:
-        bool_vod_expired = False
-    return bool_vod_expired
 
 def load_response_content(url):
     return return_request_response(url).text
@@ -92,16 +90,12 @@ def get_valid_urls(url_list):
             batch = current_list[i:i + max_url_list_length]
             response_list = list(pool.map(return_request_head, batch))
             for m3u8_url in response_list:
-                if m3u8_url.status_code == 200:
+                if check_status_code(m3u8_url.status_code):
                     valid_url_list.append(m3u8_url.url)
     return valid_url_list
 
 def bool_is_muted(url):
-    if "unmuted" in load_response_content(url):
-       is_muted = True
-    else:
-        is_muted = False
-    return is_muted
+    return bool("unmuted" in load_response_content(url))
 
 def write_vod_file(url,file_path):
     vod_file = open(file_path, "w")
@@ -145,7 +139,7 @@ def get_segments(url, file_path):
                     counter += 1
                     segment_list.append(str(url) + str(counter - 1) + ".ts")
                 else:
-                    unmuted_vod_file.write(segment)
+                    pass
         unmuted_vod_file.close()
     else:
         write_vod_file(url, file_path)
@@ -166,7 +160,7 @@ def get_segments(url, file_path):
                     unmuted_vod_file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
                     segment_list.append(str(url) + str(counter - 1) + ".ts")
                 else:
-                    unmuted_vod_file.write(segment)
+                    pass
         unmuted_vod_file.close()
     return segment_list
 
@@ -179,7 +173,7 @@ def check_segment_availability(segments):
             batch = current_list[i:i + max_url_list_length]
             response_list = list(pool.map(return_request_head, batch))
             for segment_response in response_list:
-                if segment_response.status_code == 200:
+                if check_status_code(segment_response.status_code):
                     valid_segment_counter +=1
     return valid_segment_counter
 
@@ -195,18 +189,18 @@ def recover_vod():
             print(first_url_index)
             print("Vod contains muted segments")
             bool_unmute_vod = input("Would you like to unmute the vod (Y/N): ")
-            if bool_unmute_vod.upper() == "Y":
+            if check_user_response(bool_unmute_vod):
                 unmute_vod(first_url_index, generate_vod_filename(streamer_name, vodID))
                 print("Total Number of Segments: " + str(len(get_segments(first_url_index, generate_vod_filename(streamer_name,vodID)))))
                 check_segment = input("Would you like to check if segments are valid (Y/N): ")
-                if check_segment.upper() == "Y":
+                if check_user_response(check_segment):
                     print(str(check_segment_availability(get_segments(first_url_index, generate_vod_filename(streamer_name,vodID))))+ " of " + str(len(get_segments(first_url_index, generate_vod_filename(streamer_name,vodID)))) + " segments are valid.")
         else:
             print(first_url_index)
             print("Vod does NOT contain muted segments")
             print("Total Number of Segments: " + str(len(get_segments(first_url_index, generate_vod_filename(streamer_name, vodID)))))
             check_segment = input("Would you like to check if segments are valid (Y/N): ")
-            if check_segment.upper() == "Y":
+            if check_user_response(check_segment):
                 print(str(check_segment_availability(get_segments(first_url_index, generate_vod_filename(streamer_name, vodID)))) + " of " + str(len(get_segments(first_url_index,generate_vod_filename(streamer_name, vodID)))) + " segments are valid.")
             if os.path.exists(generate_vod_filename(streamer_name,vodID)):
                 remove_file(generate_vod_filename(streamer_name,vodID))
@@ -240,7 +234,7 @@ def get_valid_clips_urls(clip_list, reps):
             response_list = list(pool.map(return_request_head, batch))
             for x in response_list:
                 all_clip_url_list.append(x.url)
-                if x.status_code == 200:
+                if check_status_code(x.status_code):
                     valid_counter = valid_counter + 1
                     valid_clip_url_list.append(x.url)
                     print(str(valid_counter) + " Clip(s) Found")
@@ -257,17 +251,19 @@ def recover_all_clips():
     reps = get_reps(duration)
     valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID,reps),reps)
     log_file = input("Do you want to log results to file (Y/N): ")
-    if log_file.upper() == "Y":
+    if check_user_response(log_file):
         file_name = get_file_directory(get_default_directory(), streamer_name, vodID)
         log = open(file_name, "a")
         for url in valid_clips:
             log.write(url + "\n")
         log.close()
-    bool_download = input("Do you want to download the recovered clips (Y/N): ")
-    if bool_download.upper() == "Y":
-        download_clips(get_default_directory(),streamer_name,vodID)
+        bool_download = input("Do you want to download the recovered clips (Y/N): ")
+        if check_user_response(bool_download):
+            download_clips(get_default_directory(), streamer_name, vodID)
+        else:
+            return
     else:
-        print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer_name, vodID))
+        return
 
 def return_file_contents(directory, streamer, vod_id):
     with open(get_file_directory(directory, streamer, vod_id)) as f:
@@ -308,11 +304,11 @@ def get_random_clips():
             response_list = list(pool.map(return_request_head, batch))
             for index, elem in enumerate(response_list):
                 url_list.append(elem)
-                if elem.status_code == 200:
+                if check_status_code(elem.status_code):
                     print(elem.url)
                     next_url = input("Do you want another url (Y/N): ")
-                    if next_url.lower() == "y":
-                        if response_list[index + 1].status_code == 200:
+                    if check_user_response(next_url):
+                        if check_status_code(response_list[index + 1].status_code):
                             print(response_list[index + 1].url)
                     else:
                         return
@@ -335,7 +331,7 @@ def bulk_clip_recovery():
                 response_list = list(pool.map(return_request_head, batch))
                 for index, elem in enumerate(response_list):
                     url_list.append(elem)
-                    if elem.status_code == 200:
+                    if check_status_code(elem.status_code):
                         valid_counter += 1
                         if valid_counter >= 1:
                             file_name = get_default_directory() + "\\" + streamer + "_" + vod + "_log.txt"
@@ -347,7 +343,7 @@ def bulk_clip_recovery():
                 print(str(len(url_list)) + " of " + str(round(duration / 2)))
         valid_counter = 0
         bool_download = input("Do you want to download the recovered clips (Y/N): ")
-        if bool_download.upper() == "Y":
+        if check_user_response(bool_download):
             download_clips(get_default_directory(), streamer, vod)
         else:
             print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
@@ -366,18 +362,8 @@ def download_clips(directory, streamer, vod_id):
         vod_counter = return_uuid()
         link_url = os.path.basename(links)
         r = requests.get(links, stream=True)
-        if r.status_code == 200:
-            if "offset" in link_url:
-                with open(download_directory+"\\"+streamer.title()+"_" + str(vod_id) + "_" + str(vod_counter) + ".mp4", 'wb') as x:
-                    print(datetime.datetime.now().strftime("%Y/%m/%d %I:%M:%S    ") + "Downloading... Clip " + str(
-                        counter) + " of " + str(len(return_file_contents(directory, streamer, vod_id))) + " - " + links)
-                    x.write(r.content)
-            elif "AT-cm%" in link_url:
-                with open(download_directory+"\\"+streamer.title()+"_" + str(vod_id) + "_" + str(vod_counter) + ".mp4", 'wb') as x:
-                    print(datetime.datetime.now().strftime("%Y/%m/%d %I:%M:%S    ") + "Downloading... Clip " + str(
-                        counter) + " of " + str(len(return_file_contents(directory, streamer, vod_id))) + " - " + links)
-                    x.write(r.content)
-            elif "index-" in link_url:
+        if check_status_code(r.status_code):
+            if str(link_url).endswith(".mp4"):
                 with open(download_directory+"\\"+streamer.title()+"_" + str(vod_id) + "_" + str(vod_counter) + ".mp4", 'wb') as x:
                     print(datetime.datetime.now().strftime("%Y/%m/%d %I:%M:%S    ") + "Downloading... Clip " + str(
                         counter) + " of " + str(len(return_file_contents(directory, streamer, vod_id))) + " - " + links)
