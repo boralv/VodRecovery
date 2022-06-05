@@ -14,6 +14,18 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
+# Clip Recovery
+* Scripts are very simple and should be very easy to run. 
+
+# Bulk Clip Recovery
+* MUST download CSV file from sullygnome
+* MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
+
+# Download Clips
+* Download clips requires the tracker url
+* The script looks for the name of the file that the clip finder scripts create.
+* The script will ask how many lines to be skipped.. put 0 if your using my clip recovery scripts.
+
 # Timezones
 * Timezones are listed in the 'timezones.txt' file in the repository.
 
@@ -32,18 +44,6 @@ Get-TimeZone | Out-File -FilePath C:\Users\USER_NAME\Documents\localtimezone.txt
 Get-TimeZone -ListAvailable | Out-File -FilePath C:\Users\USER_NAME\Documents\timezone.txt
 ``` 
 
-# Clip Recovery
-* Scripts are very simple and should be very easy to run. 
-
-# Bulk Clip Recovery
-* MUST download CSV file from sullygnome
-* MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
-
-# Download Clips
-* Download clips requires the tracker url
-* The script looks for the name of the file that the clip finder scripts create.
-* The script will ask how many lines to be skipped.. put 0 if your using my clip recovery scripts.
-
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
 1. TwitchTracker.com
@@ -58,4 +58,8 @@ Get-TimeZone -ListAvailable | Out-File -FilePath C:\Users\USER_NAME\Documents\ti
 # Additional Notes
 * If creating an issue for a problem that your experiencing please provide atleast 1 example.
 * If you are not getting results back from the script. Please try vods from other streamers, if the other streamers vods give you results then the original vods you were trying probably just don't exist. 
+
+
+# Latest Release
+[Stable Version 1.0.0.8](https://github.com/ItIckeYd/VodRecovery/releases/tag/1.0.0.8-Full-Release)
 
