@@ -181,7 +181,7 @@ def recover_vod():
     streamer_name = input("Enter streamer name: ").strip()
     vodID = input("Enter vod id: ").strip()
     timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
-    print("Vod is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older then 60 days chances of recovery are slim." + "\n")
+    print("Vod is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older than 60 days chances of recovery are slim." + "\n")
     url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
     if len(url_list) > 0:
         first_url_index = url_list[0]
