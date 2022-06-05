@@ -1,11 +1,13 @@
 import random
 import time
+from datetime import datetime
 import datetime
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
-import requests
 import os
 import uuid
+import grequests
+import requests
 
 domains = ["https://vod-secure.twitch.tv/",
 "https://vod-metro.twitch.tv/",
@@ -83,15 +85,10 @@ def get_all_urls(streamer, vod_id, vod_timestamp):
 
 def get_valid_urls(url_list):
     valid_url_list = []
-    with ThreadPoolExecutor(max_workers=100) as pool:
-        max_url_list_length = 100
-        current_list = url_list
-        for i in range(0, len(current_list), max_url_list_length):
-            batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(return_request_head, batch))
-            for m3u8_url in response_list:
-                if check_status_code(m3u8_url.status_code):
-                    valid_url_list.append(m3u8_url.url)
+    rs = (grequests.head(u) for u in url_list)
+    for result in grequests.imap(rs, size=100):
+        if check_status_code(result.status_code):
+            valid_url_list.append(result.url)
     return valid_url_list
 
 def bool_is_muted(url):
@@ -125,8 +122,7 @@ def unmute_vod(url,file_path):
     print(os.path.basename(file_path)+" Has been unmuted. File can be found in " + file_path)
 
 def get_segments(url, file_path):
-    list_of_lines = []
-    segment_list = []
+    list_of_lines,segment_list = [],[]
     counter = 0
     if os.path.exists(file_path):
         with open(file_path, "r+") as unmuted_vod_file:
@@ -166,22 +162,20 @@ def get_segments(url, file_path):
 
 def check_segment_availability(segments):
     valid_segment_counter = 0
-    with ThreadPoolExecutor(max_workers=100) as pool:
-        max_url_list_length = 500
-        current_list = segments
-        for i in range(0, len(current_list), max_url_list_length):
-            batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(return_request_head, batch))
-            for segment_response in response_list:
-                if check_status_code(segment_response.status_code):
-                    valid_segment_counter +=1
+    all_segments = []
+    for url in segments:
+        all_segments.append(url.strip())
+    rs = (grequests.head(u) for u in all_segments)
+    for result in grequests.imap(rs, size=100):
+        if check_status_code(result.status_code):
+            valid_segment_counter +=1
     return valid_segment_counter
 
 def recover_vod():
     streamer_name = input("Enter streamer name: ").strip()
     vodID = input("Enter vod id: ").strip()
     timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
-    print("Vod is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older then 60 days chances of recovery are slim." + "\n")
+    print("Vod is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older than 60 days chances of recovery are slim." + "\n")
     url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
     if len(url_list) > 0:
         first_url_index = url_list[0]
@@ -223,24 +217,20 @@ def get_all_clip_urls(vod_id, reps):
     return original_vod_url_list
 
 def get_valid_clips_urls(clip_list, reps):
-    valid_counter = 0
-    valid_clip_url_list = []
-    all_clip_url_list = []
-    max_url_list_length = 200
-    current_list = clip_list
-    with ThreadPoolExecutor(max_workers=100) as pool:
-        for i in range(0, len(clip_list), max_url_list_length):
-            batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(return_request_head, batch))
-            for x in response_list:
-                all_clip_url_list.append(x.url)
-                if check_status_code(x.status_code):
-                    valid_counter = valid_counter + 1
-                    valid_clip_url_list.append(x.url)
-                    print(str(valid_counter) + " Clip(s) Found")
-            print(str(len(all_clip_url_list)) + " of " + str(round(reps / 2)))
-    return valid_clip_url_list
-
+    full_url_list,valid_url_list = [],[]
+    total_counter,valid_counter = 0,0
+    rs = (grequests.head(u) for u in clip_list)
+    for result in grequests.imap(rs, size=100):
+        total_counter +=1
+        full_url_list.append(result.url)
+        if total_counter == 500:
+            print(str(len(full_url_list)) + " of " + str(round(reps / 2)))
+            total_counter = 0
+        if check_status_code(result.status_code):
+            valid_counter += 1
+            valid_url_list.append(result.url)
+            print(str(valid_counter) + " Clip(s) Found")
+    return valid_url_list
 
 def recover_all_clips():
     streamer_name = input("Enter streamer name: ").strip()
@@ -249,7 +239,7 @@ def recover_all_clips():
     minutes = input("Enter minute value: ")
     duration = get_duration(hours,minutes)
     reps = get_reps(duration)
-    valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID,reps),reps)
+    valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID,reps), reps)
     log_file = input("Do you want to log results to file (Y/N): ")
     if check_user_response(log_file):
         file_name = get_file_directory(get_default_directory(), streamer_name, vodID)
@@ -314,40 +304,35 @@ def get_random_clips():
                         return
 
 def bulk_clip_recovery():
-    counter = 0
-    valid_counter = 0
+    vod_counter,total_counter, valid_counter, iteration_counter = 0,0,0,0
     streamer = input("Enter Streamer: ")
     file_path = input("Enter full path of sullygnome CSV file: ")
     for vod, duration in parse_csv_file(file_path).items():
-        counter += 1
-        print("Processing Twitch Vod... " + str(vod) + " - " + str(counter) + " of " + str(len(parse_csv_file(file_path))))
+        vod_counter += 1
+        print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(len(parse_csv_file(file_path))))
         original_vod_url_list = get_all_clip_urls(vod,duration)
-        with ThreadPoolExecutor(max_workers=100) as pool:
-            url_list = []
-            max_url_list_length = 200
-            current_list = original_vod_url_list
-            for i in range(0, len(original_vod_url_list), max_url_list_length):
-                batch = current_list[i:i + max_url_list_length]
-                response_list = list(pool.map(return_request_head, batch))
-                for index, elem in enumerate(response_list):
-                    url_list.append(elem)
-                    if check_status_code(elem.status_code):
-                        valid_counter += 1
-                        if valid_counter >= 1:
-                            file_name = get_default_directory() + "\\" + streamer + "_" + vod + "_log.txt"
-                            log = open(file_name, "a+")
-                            log.write(elem.url + "\n")
-                        print(str(valid_counter) + " Clip(s) Found")
-                    else:
-                        pass
-                print(str(len(url_list)) + " of " + str(round(duration / 2)))
-        valid_counter = 0
+        rs = (grequests.head(u) for u in original_vod_url_list)
+        for result in grequests.imap(rs, size=100):
+            total_counter +=1
+            iteration_counter += 1
+            if total_counter == 500:
+                print(str(iteration_counter) + " of " + str(len(original_vod_url_list)))
+                total_counter = 0
+            if check_status_code(result.status_code):
+                valid_counter += 1
+                print(str(valid_counter) + " Clip(s) Found")
+                file_name = get_default_directory() + "\\" + streamer + "_" + vod + "_log.txt"
+                log = open(file_name, "a+")
+                log.write(result.url + "\n")
+                log.close()
+            else:
+               continue
+        total_counter,valid_counter,iteration_counter = 0,0,0
         bool_download = input("Do you want to download the recovered clips (Y/N): ")
         if check_user_response(bool_download):
             download_clips(get_default_directory(), streamer, vod)
         else:
             print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
-
 
 def download_clips(directory, streamer, vod_id):
     counter = 0
