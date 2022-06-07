@@ -261,10 +261,6 @@ def return_file_contents(directory, streamer, vod_id):
         content = [x.strip() for x in content]
     return content
 
-def return_uuid():
-    generated_uuid = uuid.uuid4().hex[:8]
-    return generated_uuid
-
 def parse_csv_file(file_path):
     vod_info_dict = {}
     csv_file = open(file_path, "r+")
@@ -344,7 +340,7 @@ def download_clips(directory, streamer, vod_id):
         os.mkdir(download_directory)
     for links in return_file_contents(directory, streamer, vod_id):
         counter = counter + 1
-        vod_counter = return_uuid()
+        vod_counter = links.split("-offset-")[1].replace(".mp4","")
         link_url = os.path.basename(links)
         r = requests.get(links, stream=True)
         if check_status_code(r.status_code):
@@ -369,7 +365,7 @@ def run_script():
         elif menu == 1:
             recover_vod()
         elif menu == 2:
-            clip_type = int(input("Enter what type of clip recovery: " + "\n" +"1) Recover all clips" + "\n" + "2) Find random clips" + "\n" + "3) Bulk Recover" + "\n"))
+            clip_type = int(input("Enter what type of clip recovery: " + "\n" +"1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome export" + "\n"))
             if clip_type == 1:
                 recover_all_clips()
             elif clip_type == 2:
