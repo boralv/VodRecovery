@@ -5,7 +5,6 @@ import datetime
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import os
-import uuid
 import grequests
 import requests
 
