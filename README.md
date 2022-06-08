@@ -2,7 +2,7 @@
 * Created By: ItIckeYd
 * Initial Release: May 3rd, 2022
 * The script is used to retrieve sub-only and deleted videos from twitch.
-* Credits to daylamtayari - TwitchRecover repository helped with the logic to recover twitch videos.
+* Credits to daylamtayari - [TwitchRecover](https://github.com/TwitchRecover/TwitchRecover) repository helped with the logic to recover twitch videos.
 
 # Script Installation
 1. Install Python
@@ -19,9 +19,9 @@
 
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
-1. TwitchTracker.com
-2. Sullygnome.com
-3. Streamscharts.com
+1. [TwitchTracker.com](https://twitchtracker.com/)
+2. [Sullygnome.com](https://sullygnome.com/)
+3. [Streamscharts.com](https://streamscharts.com/)
 
 # Optional IDE
 * Python has a few code editors that can be used which include the following:
