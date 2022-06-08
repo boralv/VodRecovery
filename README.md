@@ -4,22 +4,18 @@
 * The script is used to retrieve sub-only and deleted videos from twitch.
 * Credits to daylamtayari - TwitchRecover repository helped with the logic to recover twitch videos.
 
-# Script Requirements
-* MUST have python installed.
-* MUST have additional packages installed (ie.. Requests)
+# Script Installation
+1. Install Python
+2. Clone repository
+3. Navigate into cloned directory
+4. Install required packages ``` pip install -r requirements.txt ``` (Run in terminal)
+5. Run Script :)
 
 # Script Notes
 * The script CANNOT recover every single vod. The script can only recover vods that still exist on the twitch vod domains.
 * Due to twitch's deletion process vods are typically only available up to 60 days old. The script will notify you if its older then 60 days.
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
-
-# Script Installation
-1. (Install Python)
-2. Clone repository
-3. Navigate into cloned directory
-4. Install required packages ``` pip install -r requirements.txt ``` (Run in terminal)
-5. Run Script :)
 
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
