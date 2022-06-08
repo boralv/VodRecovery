@@ -171,7 +171,7 @@ def check_segment_availability(segments):
     return valid_segment_counter
 
 def recover_vod():
-    streamer_name = input("Enter streamer name: ").strip()
+    streamer_name = input("Enter streamer name: ").lower().strip()
     vodID = input("Enter vod id: ").strip()
     timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
     print("Vod is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older than 60 days chances of recovery are slim." + "\n")
@@ -232,7 +232,7 @@ def get_valid_clips_urls(clip_list, reps):
     return valid_url_list
 
 def recover_all_clips():
-    streamer_name = input("Enter streamer name: ").strip()
+    streamer_name = input("Enter streamer name: ").lower().strip()
     vodID = input("Enter vod id: ").strip()
     hours = input("Enter hour value: ")
     minutes = input("Enter minute value: ")
@@ -300,7 +300,7 @@ def get_random_clips():
 
 def bulk_clip_recovery():
     vod_counter,total_counter, valid_counter, iteration_counter = 0,0,0,0
-    streamer = input("Enter Streamer: ")
+    streamer = input("Enter Streamer: ").lower()
     file_path = input("Enter full path of sullygnome CSV file: ")
     for vod, duration in parse_csv_file(file_path).items():
         vod_counter += 1
