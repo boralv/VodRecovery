@@ -14,18 +14,6 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
-# Clip Recovery
-* Scripts are very simple and should be very easy to run. 
-
-# Bulk Clip Recovery
-* MUST download CSV file from sullygnome
-* MUST open the CSV in excel and save it before running the script (This ensures formatting is correct). If you get a prompt in excel say "yes". 
-
-# Download Clips
-* Download clips requires the tracker url
-* The script looks for the name of the file that the clip finder scripts create.
-* The script will ask how many lines to be skipped.. put 0 if your using my clip recovery scripts.
-
 # Timezones
 * Timezones are listed in the 'timezones.txt' file in the repository.
 
