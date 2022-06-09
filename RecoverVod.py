@@ -28,7 +28,7 @@ domains = ["https://vod-secure.twitch.tv/",
 
 def return_main_menu():
     print("WELCOME TO VOD RECOVERY" + "\n")
-    menu = "1) Recover Vod" + "\n" + "2) Recover Clips" + "\n" + "3) Exit" + "\n"
+    menu = "1) Recover Vod" + "\n" + "2) Recover Clips" + "\n" + "3) Unmute an M3U8 file" + "\n" + "4) Check M3U8 Segments" + "\n" + "5) Exit" + "\n"
     print(menu)
 
 def return_request_response(url):
@@ -68,6 +68,15 @@ def get_vod_age(timestamp):
 
 def load_response_content(url):
     return return_request_response(url).text
+
+def parse_m3u8_link(url):
+    streamer = url.split("_")[1]
+    vod_id = url.split("_")[3].split("/")[0]
+    if "_" in vod_id:
+        vod_id = vod_id.replace("_","")
+        return streamer,vod_id
+    else:
+        return streamer,vod_id
 
 def get_all_urls(streamer, vod_id, vod_timestamp):
     urls = []
@@ -119,6 +128,30 @@ def unmute_vod(url,file_path):
                  unmuted_vod_file.write(segment)
     unmuted_vod_file.close()
     print(os.path.basename(file_path)+" Has been unmuted. File can be found in " + file_path)
+
+def unmute_user_m3u8(url):
+    streamer = parse_m3u8_link(url)[0]
+    vod_id = parse_m3u8_link(url)[1]
+    list_of_lines = []
+    write_vod_file(url, generate_vod_filename(streamer,vod_id))
+    vod_file = open(generate_vod_filename(streamer,vod_id), "r")
+    for lines in vod_file.readlines():
+        list_of_lines.append(lines)
+    vod_file.close()
+    counter = 0
+    with open(generate_vod_filename(streamer,vod_id), "w") as unmuted_vod_file:
+        for segment in list_of_lines:
+            url = url.replace("index-dvr.m3u8", "")
+            if "-unmuted" in segment and not segment.startswith("#"):
+                counter += 1
+                unmuted_vod_file.write(segment.replace(segment, str(url) + str(counter - 1)) + "-muted.ts" + "\n")
+            elif "-unmuted" not in segment and not segment.startswith("#"):
+                counter += 1
+                unmuted_vod_file.write(segment.replace(segment, str(url) + str(counter - 1)) + ".ts" + "\n")
+            else:
+                unmuted_vod_file.write(segment)
+    unmuted_vod_file.close()
+    print(os.path.basename(generate_vod_filename(streamer,vod_id)) + " Has been unmuted. File can be found in " + generate_vod_filename(streamer,vod_id))
 
 def get_segments(url, file_path):
     list_of_lines,segment_list = [],[]
@@ -356,10 +389,10 @@ def download_clips(directory, streamer, vod_id):
 
 def run_script():
     menu = 0
-    while menu < 3:
+    while menu < 5:
         return_main_menu()
         menu = int(input("Please choose an option: "))
-        if menu == 3:
+        if menu == 5:
             exit()
         elif menu == 1:
             recover_vod()
@@ -373,6 +406,19 @@ def run_script():
                 bulk_clip_recovery()
             else:
                 print("Invalid option! Returning to main menu.")
+        elif menu == 3:
+            url = input("Enter M3U8 Link: ")
+            if bool_is_muted(url):
+                unmute_user_m3u8(url)
+            else:
+                print("Vod does NOT contain muted segments")
+                return
+        elif menu == 4:
+            url = input("Enter M3U8 Link: ")
+            streamer = parse_m3u8_link(url)[0]
+            vod_id = parse_m3u8_link(url)[1]
+            print(str(check_segment_availability(get_segments(url, generate_vod_filename(streamer, vod_id)))) + " of " + str(len(get_segments(url,generate_vod_filename(streamer, vod_id)))) + " segments are valid.")
+            remove_file(generate_vod_filename(streamer, vod_id))
         else:
             print("Invalid Option! Exiting...")
 
