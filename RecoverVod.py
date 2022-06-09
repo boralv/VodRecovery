@@ -72,11 +72,7 @@ def load_response_content(url):
 def parse_m3u8_link(url):
     streamer = url.split("_")[1]
     vod_id = url.split("_")[3].split("/")[0]
-    if "_" in vod_id:
-        vod_id = vod_id.replace("_","")
-        return streamer,vod_id
-    else:
-        return streamer,vod_id
+    return streamer,vod_id
 
 def get_all_urls(streamer, vod_id, vod_timestamp):
     urls = []
