@@ -412,7 +412,6 @@ def run_script():
                 unmute_user_m3u8(url)
             else:
                 print("Vod does NOT contain muted segments")
-                return
         elif menu == 4:
             url = input("Enter M3U8 Link: ")
             streamer = parse_m3u8_link(url)[0]
