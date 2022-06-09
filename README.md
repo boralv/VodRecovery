@@ -2,11 +2,14 @@
 * Created By: ItIckeYd
 * Initial Release: May 3rd, 2022
 * The script is used to retrieve sub-only and deleted videos from twitch.
-* Credits to daylamtayari - TwitchRecover repository helped with the logic to recover twitch videos.
+* Credits to daylamtayari - [TwitchRecover](https://github.com/TwitchRecover/TwitchRecover) repository helped with the logic to recover twitch videos.
 
-# Script Requirements
-* MUST have python installed.
-* MUST have additional packages installed (ie.. Requests)
+# Script Installation
+1. Install Python
+2. Clone repository
+3. Navigate into cloned directory
+4. Install required packages ``` pip install -r requirements.txt ``` (Run in terminal)
+5. Run Script :)
 
 # Script Notes
 * The script CANNOT recover every single vod. The script can only recover vods that still exist on the twitch vod domains.
@@ -14,29 +17,11 @@
 * The script uses local time to return results therefore using values from somebody else's example will not always work.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
 
-# Timezones
-* Timezones are listed in the 'timezones.txt' file in the repository.
-
-Powershell (Run as administrator)
-
-1. Get local timezone
-```
-Get-TimeZone 
-```
-2. Output local timezone to text file
-```
-Get-TimeZone | Out-File -FilePath C:\Users\USER_NAME\Documents\localtimezone.txt
-```
-3. Output all timezones to text file
-```
-Get-TimeZone -ListAvailable | Out-File -FilePath C:\Users\USER_NAME\Documents\timezone.txt
-``` 
-
 # Analytical Sites
 * The following sites can be used to provide the information that the script requires:
-1. TwitchTracker.com
-2. Sullygnome.com
-3. Streamscharts.com
+1. [TwitchTracker.com](https://twitchtracker.com/)
+2. [Sullygnome.com](https://sullygnome.com/)
+3. [Streamscharts.com](https://streamscharts.com/)
 
 # Optional IDE
 * Python has a few code editors that can be used which include the following:
