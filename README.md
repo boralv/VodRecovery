@@ -34,5 +34,5 @@
 
 
 # Latest Release
-[Stable Version 1.0.0.8](https://github.com/ItIckeYd/VodRecovery/releases/tag/1.0.0.8-Full-Release)
+[Stable Release 1.0.0.9](https://github.com/ItIckeYd/VodRecovery/releases/tag/1.0.0.9)
 
