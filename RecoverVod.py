@@ -1,5 +1,5 @@
 import random
-import time
+import datetime
 from datetime import datetime
 import datetime
 import hashlib
@@ -77,8 +77,7 @@ def parse_m3u8_link(url):
 def get_all_urls(streamer, vod_id, vod_timestamp):
     urls = []
     for bf_second in range(60):
-        vod_date = datetime.datetime(format_timestamp(vod_timestamp).year,format_timestamp(vod_timestamp).month,format_timestamp(vod_timestamp).day,format_timestamp(vod_timestamp).hour,format_timestamp(vod_timestamp).minute,bf_second)
-        converted_timestamp = round(time.mktime(vod_date.timetuple()))
+        converted_timestamp = (datetime.datetime(format_timestamp(vod_timestamp).year,format_timestamp(vod_timestamp).month,format_timestamp(vod_timestamp).day,format_timestamp(vod_timestamp).hour,format_timestamp(vod_timestamp).minute,bf_second) - datetime.datetime(1970,1,1)).total_seconds()
         base_url = streamer + "_" + vod_id + "_" + str(int(converted_timestamp))
         hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
         formatted_base_url = hashed_base_url + '_' +  base_url
