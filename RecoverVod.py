@@ -297,8 +297,11 @@ def parse_csv_file(file_path):
         if line.strip():
             filtered_string = line.partition("stream/")[2]
             final_string = filtered_string.split(",")
-            reps = ((int(final_string[1].strip()) * 60) + 2000) * 2
-            vod_info_dict.update({final_string[0]: reps})
+            if int(final_string[1]) != 0:
+                reps = ((int(final_string[1]) * 60) + 2000) * 2
+                vod_info_dict.update({final_string[0]: reps})
+            else:
+               pass
     csv_file.close()
     return vod_info_dict
 
@@ -351,12 +354,13 @@ def bulk_clip_recovery():
                 log.close()
             else:
                continue
+        if valid_counter != 0:
+            bool_download = input("Do you want to download the recovered clips (Y/N): ")
+            if check_user_response(bool_download):
+                download_clips(get_default_directory(), streamer, vod)
+            else:
+                print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
         total_counter,valid_counter,iteration_counter = 0,0,0
-        bool_download = input("Do you want to download the recovered clips (Y/N): ")
-        if check_user_response(bool_download):
-            download_clips(get_default_directory(), streamer, vod)
-        else:
-            print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
 
 def download_clips(directory, streamer, vod_id):
     counter = 0
