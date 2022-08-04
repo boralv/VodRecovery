@@ -1,7 +1,5 @@
 import random
 import datetime
-from datetime import datetime
-import datetime
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import os
@@ -230,6 +228,22 @@ def recover_vod():
     else:
         print("No vods found using current domain list." + "\n")
 
+def bulk_vod_recovery():
+    streamer_name = input("Enter streamer name: ").lower().strip()
+    file_path = input("Enter full path of sullygnome CSV file: ")
+    for timestamp, vodID in parse_vod_csv_file(file_path).items():
+        print("\n"+"Recovering Vod....", vodID)
+        url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
+        if len(url_list) > 0:
+            first_url_index = url_list[0]
+            if bool_is_muted(first_url_index):
+                print(first_url_index)
+                print("Vod contains muted segments")
+            else:
+                print(first_url_index)
+                print("Vod does NOT contain muted segments")
+        else:
+            print("No vods found using current domain list." + "\n")
 
 def get_duration(hours, minutes):
     return (int(hours) * 60) + int(minutes)
@@ -288,7 +302,7 @@ def return_file_contents(directory, streamer, vod_id):
         content = [x.strip() for x in content]
     return content
 
-def parse_csv_file(file_path):
+def parse_clip_csv_file(file_path):
     vod_info_dict = {}
     csv_file = open(file_path, "r+")
     lines = csv_file.readlines()[1:]
@@ -303,6 +317,23 @@ def parse_csv_file(file_path):
                pass
     csv_file.close()
     return vod_info_dict
+
+def parse_vod_csv_file(file_path):
+    stream_info = {}
+    csv_file = open(file_path, "r+")
+    lines = csv_file.readlines()[1:]
+    for line in lines:
+        if line.strip():
+            day = line.split(",")[1].split(" ")[1].replace("th", "").replace("st", "").replace("nd", "").replace("rd","")
+            month = line.split(",")[1].split(" ")[2]
+            year = line.split(",")[1].split(" ")[3]
+            timestamp = line.split(",")[1].split(" ")[4]
+            stream_datetime = day + " " + month + " " + year + " " + timestamp
+            stream_info.update({datetime.datetime.strftime(
+                datetime.datetime.strptime(stream_datetime.strip() + ":00", "%d %B %Y %H:%M:%S"), "%Y-%m-%d %H:%M:%S"):
+                                    line.partition("stream/")[2].split(",")[0]})
+    csv_file.close()
+    return stream_info
 
 def get_random_clips():
     vod_id = input("Enter vod id: ")
@@ -333,9 +364,9 @@ def bulk_clip_recovery():
     vod_counter,total_counter, valid_counter, iteration_counter = 0,0,0,0
     streamer = input("Enter Streamer: ").lower()
     file_path = input("Enter full path of sullygnome CSV file: ")
-    for vod, duration in parse_csv_file(file_path).items():
+    for vod, duration in parse_clip_csv_file(file_path).items():
         vod_counter += 1
-        print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(len(parse_csv_file(file_path))))
+        print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(len(parse_clip_csv_file(file_path))))
         original_vod_url_list = get_all_clip_urls(vod,duration)
         rs = (grequests.head(u) for u in original_vod_url_list)
         for result in grequests.imap(rs, size=100):
@@ -394,7 +425,13 @@ def run_script():
         if menu == 5:
             exit()
         elif menu == 1:
-            recover_vod()
+            vod_type = int(input("Enter what type of vod recovery: " + "\n" + "1) Recover Vod" + "\n" + "2) Recover vods from SullyGnome export" + "\n"))
+            if vod_type == 1:
+                recover_vod()
+            elif vod_type == 2:
+                bulk_vod_recovery()
+            else:
+                print("Invalid option! Returning to main menu.")
         elif menu == 2:
             clip_type = int(input("Enter what type of clip recovery: " + "\n" +"1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome export" + "\n"))
             if clip_type == 1:
