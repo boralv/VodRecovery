@@ -386,7 +386,7 @@ def bulk_clip_recovery():
             else:
                continue
         if valid_counter != 0:
-            if bool_download.upper() == "Y":
+            if check_user_response(bool_download):
                 download_clips(get_default_directory(), streamer, vod)
             else:
                 print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
