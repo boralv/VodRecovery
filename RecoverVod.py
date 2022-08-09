@@ -364,6 +364,7 @@ def bulk_clip_recovery():
     vod_counter,total_counter, valid_counter, iteration_counter = 0,0,0,0
     streamer = input("Enter Streamer: ").lower()
     file_path = input("Enter full path of sullygnome CSV file: ")
+    bool_download = input("Do you want to download all clips recovered (Y/N)? ")
     for vod, duration in parse_clip_csv_file(file_path).items():
         vod_counter += 1
         print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(len(parse_clip_csv_file(file_path))))
@@ -385,8 +386,7 @@ def bulk_clip_recovery():
             else:
                continue
         if valid_counter != 0:
-            bool_download = input("Do you want to download the recovered clips (Y/N): ")
-            if check_user_response(bool_download):
+            if bool_download.upper() == "Y":
                 download_clips(get_default_directory(), streamer, vod)
             else:
                 print("Recovered clips logged to " + get_file_directory(get_default_directory(), streamer, vod))
