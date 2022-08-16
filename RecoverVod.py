@@ -234,7 +234,7 @@ def recover_vod():
 
 def bulk_vod_recovery():
     streamer_name = input("Enter streamer name: ").lower().strip()
-    file_path = input("Enter full path of sullygnome CSV file: ")
+    file_path = input("Enter full path of sullygnome CSV file: ").replace('"','')
     for timestamp, vodID in parse_vod_csv_file(file_path).items():
         print("\n"+"Recovering Vod....", vodID)
         url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
@@ -367,7 +367,7 @@ def get_random_clips():
 def bulk_clip_recovery():
     vod_counter,total_counter, valid_counter, iteration_counter = 0,0,0,0
     streamer = input("Enter Streamer: ").lower()
-    file_path = input("Enter full path of sullygnome CSV file: ")
+    file_path = input("Enter full path of sullygnome CSV file: ").replace('"','')
     bool_download = input("Do you want to download all clips recovered (Y/N)? ")
     for vod, duration in parse_clip_csv_file(file_path).items():
         vod_counter += 1
