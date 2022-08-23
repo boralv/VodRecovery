@@ -336,7 +336,7 @@ def get_random_clips():
         current_list = full_url_list
         for i in range(0, len(full_url_list), max_url_list_length):
             batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(grequests.head(i), batch))
+            response_list = list(pool.map(requests.head, batch))
             for index, elem in enumerate(response_list):
                 url_list.append(elem)
                 if elem.status_code == 200:
