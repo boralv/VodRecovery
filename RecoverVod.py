@@ -369,8 +369,8 @@ def bulk_clip_recovery():
             if result.status_code == 200:
                 valid_counter += 1
                 print(str(valid_counter) + " Clip(s) Found")
-                with open(generate_log_filename(get_default_directory(), streamer, vod), "w") as log_file:
-                    log_file.write(result.url)
+                with open(generate_log_filename(get_default_directory(), streamer, vod), "a+") as log_file:
+                    log_file.write(result.url + "\n")
                 log_file.close()
             else:
                 continue
