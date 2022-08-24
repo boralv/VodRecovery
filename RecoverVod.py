@@ -78,9 +78,27 @@ def get_reps(duration):
 
 
 def get_all_clip_urls(vod_id, reps):
-    original_vod_url_list = ["https://clips-media-assets2.twitch.tv/" + vod_id + "-offset-" + str(i) + ".mp4" for i in
-                             range(reps) if i % 2 == 0]
-    return original_vod_url_list
+    first_clip_list = ["https://clips-media-assets2.twitch.tv/" + vod_id + "-offset-" + str(i) + ".mp4" for i in
+                       range(reps) if i % 2 == 0]
+
+    second_clip_list = [
+        "https://clips-media-assets2.twitch.tv/" + vod_id + "-index-" + "%010g" % (int('000000000') + i) + ".mp4" for i
+        in range(reps) if i % 2 == 0]
+
+    third_clip_list = ["https://clips-media-assets2.twitch.tv/vod-" + vod_id + "-offset-" + str(i) + ".mp4" for i in
+                       range(reps) if i % 2 == 0]
+
+    clip_format = input("What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
+
+    if clip_format == "1":
+        return first_clip_list
+    elif clip_format == "2":
+        return second_clip_list
+    elif clip_format == "3":
+        return third_clip_list
+    else:
+        print("Invalid option! Returning to main menu.")
+        return
 
 
 def parse_m3u8_link(url):
@@ -392,7 +410,10 @@ def download_clips(directory, streamer, vod_id):
         os.mkdir(download_directory)
     for links in return_file_contents(directory, streamer, vod_id):
         counter = counter + 1
-        clip_offset = links.split("-offset-")[1].replace(".mp4", "")
+        if "-offset-" in links:
+            clip_offset = links.split("-offset-")[1].replace(".mp4", "")
+        else:
+            clip_offset = links.split("-index-")[1].replace(".mp4", "")
         link_url = os.path.basename(links)
         r = requests.get(links, stream=True)
         if r.status_code == 200:
