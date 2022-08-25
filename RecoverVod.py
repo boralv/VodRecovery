@@ -225,7 +225,6 @@ def recover_live(streamer_name):
     r = requests.get(url=url, params=params, headers=headers)
     if r.status_code == 200:
         dict = r.json()
-        # print(len(dict["data"]))
         if len(dict["data"]) > 0:
             vodID = dict["data"][0]["id"] 
             timestamp = dict["data"][0]["started_at"]
@@ -247,7 +246,6 @@ def recover_vod_manual(streamer_name):
 def recover_vod(streamer_name, vodID, timestamp):
     print("VOD is " + str(get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim.")
     valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
-    # print(len(valid_url_list), "VODs found")
     if len(valid_url_list) > 0:
         print(valid_url_list[0])
         if vod_is_muted(valid_url_list[0]):
