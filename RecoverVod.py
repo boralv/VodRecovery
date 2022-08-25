@@ -312,7 +312,7 @@ def get_valid_clips_urls(clip_list, reps):
 
 def recover_all_clips():
     streamer_name = input("Enter streamer name: ")
-    vodID = input("Enter VOD id: ")
+    vodID = input("Enter VOD ID: ")
     hours = input("Enter hour value: ")
     minutes = input("Enter minute value: ")
     duration = get_duration(hours, minutes)
@@ -377,7 +377,7 @@ def get_random_clips():
     minutes = input("Enter Minutes: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
-    print("Total Number of Urls: " + str(len(full_url_list)))
+    print("Total Number of URLs: " + str(len(full_url_list)))
     with ThreadPoolExecutor(max_workers=100) as pool:
         url_list = []
         max_url_list_length = 500
@@ -389,7 +389,7 @@ def get_random_clips():
                 url_list.append(elem)
                 if elem.status_code == 200:
                     print(elem.url)
-                    user_option = input("Do you want another url (Y/N): ")
+                    user_option = input("Do you want another URL (Y/N): ")
                     if user_option.upper() == "Y":
                         if response_list[index + 1].status_code == 200:
                             print(response_list[index + 1].url)
