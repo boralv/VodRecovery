@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 import grequests
 import requests
+import json    
 
 domains = ["https://vod-secure.twitch.tv/",
            "https://vod-metro.twitch.tv/",
@@ -25,10 +26,8 @@ domains = ["https://vod-secure.twitch.tv/",
            "https://ddacn6pr5v0tl.cloudfront.net/",
            "https://d3aqoihi2n8ty8.cloudfront.net/"]
 
-
 def return_main_menu():
-    print("WELCOME TO VOD RECOVERY" + "\n")
-    menu = "1) Recover Vod" + "\n" + "2) Recover Clips" + "\n" + "3) Unmute an M3U8 file" + "\n" + "4) Check M3U8 Segments" + "\n" + "5) Exit" + "\n"
+    menu = "\n" + "1) Recover Live" + "\n" + "2) Recover VOD" + "\n" + "3) Recover Clips" + "\n" + "4) Unmute an M3U8 file" + "\n" + "5) Check M3U8 Segments" + "\n" + "6) Exit" + "\n"
     print(menu)
 
 
@@ -40,7 +39,6 @@ def generate_log_filename(directory, streamer, vod_id):
     file_path = os.path.join(directory + "\\" + streamer + "_" + vod_id + "_log.txt")
     return file_path
 
-
 def generate_vod_filename(streamer, vod_id):
     vod_filename = get_default_directory() + "VodRecovery_" + streamer + "_" + vod_id + ".m3u8"
     return vod_filename
@@ -50,8 +48,12 @@ def remove_file(file_path):
     if os.path.exists(file_path):
         return os.remove(file_path)
 
-
 def format_timestamp(timestamp):
+    timestamp = timestamp.replace('T', ' ')
+    timestamp = timestamp.replace('Z', '')
+    count = timestamp.count(":")
+    if count==1:
+        timestamp = timestamp + ":00"
     formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
     return formatted_date
 
@@ -117,8 +119,7 @@ def return_file_contents(directory, streamer, vod_id):
 def get_all_urls(streamer, vod_id, timestamp):
     vod_url_list = []
     for seconds in range(60):
-        epoch_timestamp = ((format_timestamp(timestamp) + timedelta(seconds=seconds)) - datetime.datetime(1970, 1,
-                                                                                                          1)).total_seconds()
+        epoch_timestamp = ((format_timestamp(timestamp) + timedelta(seconds=seconds)) - datetime.datetime(1970, 1, 1)).total_seconds()
         base_url = streamer + "_" + vod_id + "_" + str(int(epoch_timestamp))
         hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
         for domain in domains:
@@ -132,6 +133,8 @@ def get_valid_urls(url_list):
     for result in grequests.imap(rs, size=100):
         if result.status_code == 200:
             valid_url_list.append(result.url)
+            # Speeds up recovery significantly
+            break
     return valid_url_list
 
 
@@ -203,7 +206,6 @@ def get_segments(url):
         unmuted_vod_file.close()
     return segment_list
 
-
 def check_segment_availability(segments):
     valid_segment_counter = 0
     all_segments = []
@@ -215,50 +217,81 @@ def check_segment_availability(segments):
             valid_segment_counter += 1
     return valid_segment_counter
 
+def check_segments(url):
+    segments = get_segments(url)
+    print(str(check_segment_availability(segments)) + " of " + str(len(segments)) + " segments are valid.")
+    remove_file(generate_vod_filename(parse_m3u8_link(url)[0], parse_m3u8_link(url)[1]))
 
-def recover_vod():
+def get_streamer_name():
     streamer_name = input("Enter streamer name: ")
-    vodID = input("Enter vod id: ")
-    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ")
-    print("Vod is " + str(
-        get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim." + "\n")
-    valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
-    if len(valid_url_list) > 0:
-        if vod_is_muted(valid_url_list[0]):
-            print(valid_url_list[0] + "\n" + "Vod contains muted segments")
-            user_input = input("Would you like to unmute the vod (Y/N): ")
-            if user_input.upper() == "Y":
-                unmute_vod(valid_url_list[0])
-                print("Total Number of Segments: " + str(len(get_segments(valid_url_list[0]))))
-                user_option = input("Would you like to check if segments are valid (Y/N): ")
-                if user_option.upper() == "Y":
-                    print(str(check_segment_availability(get_segments(valid_url_list[0]))) + " of " + str(
-                        len(get_segments(valid_url_list[0]))) + " Segments are valid")
-                else:
-                    return
-            else:
-                return
-        else:
-            print(valid_url_list[0] + "\n" + "Vod does NOT contain muted segments")
+    if live == 1:
+        recover_live(streamer_name)
     else:
-        print("No vods found using current domain list." + "\n")
+        recover_vod_manual(streamer_name)
 
+def recover_live(streamer_name):
+    params = {
+        'user_login': streamer_name,
+    }
+    h = open("twitch-auth.json", "r")
+    headers = json.load(h)
+    url = "https://api.twitch.tv/helix/streams"
+    r = requests.get(url=url, params=params, headers=headers)
+    if r.status_code == 200:
+        dict = r.json()
+        # print(len(dict["data"]))
+        if len(dict["data"]) > 0:
+            vodID = dict["data"][0]["id"] 
+            timestamp = dict["data"][0]["started_at"]
+            recover_vod(streamer_name, vodID, timestamp)
+        else:
+            user_option = input("Streamer not live! Do you want to recover past VOD? (Y/N): ")
+            if user_option.upper() == "Y":
+                recover_vod_manual(streamer_name)
+    else:
+        print("ERROR: " + str(r.status_code) + " - " + str(r.reason))
+        pass
+    h.close()
+
+def recover_vod_manual(streamer_name):
+    vodID = input("Enter stream ID: ").strip()
+    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
+    recover_vod(streamer_name, vodID, timestamp)
+
+def recover_vod(streamer_name, vodID, timestamp):
+    print("VOD is " + str(get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim.")
+    valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
+    # print(len(valid_url_list), "VODs found")
+    if len(valid_url_list) > 0:
+        print(valid_url_list[0])
+        if vod_is_muted(valid_url_list[0]):
+            print("VOD contains muted segments")
+            user_option = input("Would you like to unmute the vod (Y/N): ")
+            if user_option.upper() == "Y":
+                unmute_vod(valid_url_list[0])
+        else:
+            print("VOD does NOT contain muted segments")
+        user_option = input("Would you like to check if segments are valid (Y/N): ")
+        if user_option.upper() == "Y":
+            check_segments(valid_url_list[0])
+    else:
+        print("No VODs found using current domain list." + "\n")
 
 def bulk_vod_recovery():
     streamer_name = input("Enter streamer name: ")
     file_path = input("Enter full path of sullygnome CSV file: ").replace('"', '')
     for timestamp, vodID in parse_vod_csv_file(file_path).items():
-        print("\n" + "Recovering Vod....", vodID)
-        url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
-        if len(url_list) > 0:
-            if vod_is_muted(url_list[0]):
-                print(url_list[0])
-                print("Vod contains muted segments")
+        print("Recovering VOD... ", vodID)
+        valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
+        if len(valid_url_list) > 0:
+            if vod_is_muted(valid_url_list[0]):
+                print(valid_url_list[0])
+                print("VOD contains muted segments")
             else:
-                print(url_list[0])
-                print("Vod does NOT contain muted segments")
+                print(valid_url_list[0])
+                print("VOD does NOT contain muted segments")
         else:
-            print("No vods found using current domain list." + "\n")
+            print("No VODs found using current domain list." + "\n")
 
 
 def get_valid_clips_urls(clip_list, reps):
@@ -277,10 +310,9 @@ def get_valid_clips_urls(clip_list, reps):
             print(str(valid_counter) + " Clip(s) Found")
     return valid_url_list
 
-
 def recover_all_clips():
     streamer_name = input("Enter streamer name: ")
-    vodID = input("Enter vod id: ")
+    vodID = input("Enter VOD ID: ")
     hours = input("Enter hour value: ")
     minutes = input("Enter minute value: ")
     duration = get_duration(hours, minutes)
@@ -321,15 +353,13 @@ def parse_clip_csv_file(file_path):
     csv_file.close()
     return vod_info_dict
 
-
 def parse_vod_csv_file(file_path):
     vod_info_dict = {}
     csv_file = open(file_path, "r+")
     lines = csv_file.readlines()[1:]
     for line in lines:
         if line.strip():
-            day = line.split(",")[1].split(" ")[1].replace("th", "").replace("st", "").replace("nd", "").replace("rd",
-                                                                                                                 "")
+            day = line.split(",")[1].split(" ")[1].replace("th", "").replace("st", "").replace("nd", "").replace("rd","")
             month = line.split(",")[1].split(" ")[2]
             year = line.split(",")[1].split(" ")[3]
             timestamp = line.split(",")[1].split(" ")[4]
@@ -342,12 +372,12 @@ def parse_vod_csv_file(file_path):
 
 
 def get_random_clips():
-    vod_id = input("Enter vod id: ")
+    vod_id = input("Enter VOD ID: ")
     hours = input("Enter Hours: ")
     minutes = input("Enter Minutes: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
-    print("Total Number of Urls: " + str(len(full_url_list)))
+    print("Total Number of URLs: " + str(len(full_url_list)))
     with ThreadPoolExecutor(max_workers=100) as pool:
         url_list = []
         max_url_list_length = 500
@@ -359,13 +389,12 @@ def get_random_clips():
                 url_list.append(elem)
                 if elem.status_code == 200:
                     print(elem.url)
-                    user_option = input("Do you want another url (Y/N): ")
+                    user_option = input("Do you want another URL (Y/N): ")
                     if user_option.upper() == "Y":
                         if response_list[index + 1].status_code == 200:
                             print(response_list[index + 1].url)
                     else:
                         return
-
 
 def bulk_clip_recovery():
     vod_counter, total_counter, valid_counter, iteration_counter = 0, 0, 0, 0
@@ -393,12 +422,12 @@ def bulk_clip_recovery():
             else:
                 continue
         if valid_counter != 0:
+            bool_download = input("Do you want to download the recovered clips (Y/N): ")
             if user_option.upper() == "Y":
                 download_clips(get_default_directory(), streamer, vod)
             else:
                 print("Recovered clips logged to " + generate_log_filename(get_default_directory(), streamer, vod))
         total_counter, valid_counter, iteration_counter = 0, 0, 0
-
 
 def download_clips(directory, streamer, vod_id):
     counter = 0
@@ -418,10 +447,8 @@ def download_clips(directory, streamer, vod_id):
         r = requests.get(links, stream=True)
         if r.status_code == 200:
             if str(link_url).endswith(".mp4"):
-                with open(download_directory + "\\" + streamer.title() + "_" + str(vod_id) + "_" + str(
-                        clip_offset) + ".mp4", 'wb') as x:
-                    print(datetime.datetime.now().strftime("%Y/%m/%d %I:%M:%S    ") + "Downloading... Clip " + str(
-                        counter) + " of " + str(len(return_file_contents(directory, streamer, vod_id))) + " - " + links)
+                with open(download_directory + "\\" + streamer.title() + "_" + str(vod_id) + "_" + str(clip_offset) + ".mp4", 'wb') as x:
+                    print(datetime.datetime.now().strftime("%Y/%m/%d %I:%M:%S    ") + "Downloading Clip " + str(counter) + " of " + str(len(return_file_contents(directory, streamer, vod_id))) + " - " + links)
                     x.write(r.content)
             else:
                 print("ERROR: Please check the log file and failing link!", links)
@@ -429,26 +456,28 @@ def download_clips(directory, streamer, vod_id):
             print("ERROR: " + str(r.status_code) + " - " + str(r.reason))
             pass
 
-
 def run_script():
     menu = 0
-    while menu < 5:
+    while menu < 6:
         return_main_menu()
         menu = int(input("Please choose an option: "))
-        if menu == 5:
-            exit()
+        global live
+        if menu == 6:
+            exit("Exiting...")
         elif menu == 1:
-            vod_type = int(input(
-                "Enter what type of vod recovery: " + "\n" + "1) Recover Vod" + "\n" + "2) Recover vods from SullyGnome export" + "\n"))
+            live = 1
+            get_streamer_name()
+        elif menu == 2:
+            vod_type = int(input("1) Recover VOD" + "\n" + "2) Recover VODs from SullyGnome export" + "\n" + "Enter what type of VOD recovery: "))
             if vod_type == 1:
-                recover_vod()
+                live = 0
+                get_streamer_name()
             elif vod_type == 2:
                 bulk_vod_recovery()
             else:
                 print("Invalid option! Returning to main menu.")
-        elif menu == 2:
-            clip_type = int(input(
-                "Enter what type of clip recovery: " + "\n" + "1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome export" + "\n"))
+        elif menu == 3:
+            clip_type = int(input("1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome export" + "\n" + "Enter what type of clip recovery: "))
             if clip_type == 1:
                 recover_all_clips()
             elif clip_type == 2:
@@ -457,19 +486,16 @@ def run_script():
                 bulk_clip_recovery()
             else:
                 print("Invalid option! Returning to main menu.")
-        elif menu == 3:
+        elif menu == 4:
             url = input("Enter M3U8 Link: ")
             if vod_is_muted(url):
                 unmute_vod(url)
             else:
-                print("Vod does NOT contain muted segments")
-        elif menu == 4:
+                print("VOD does NOT contain muted segments")
+        elif menu == 5:
             url = input("Enter M3U8 Link: ")
-            print(str(check_segment_availability(get_segments(url))) + " of " + str(
-                len(get_segments(url))) + " Segments are valid")
-            remove_file(generate_vod_filename(parse_m3u8_link(url)[0], parse_m3u8_link(url)[1]))
+            check_segments(url)
         else:
-            print("Invalid Option! Exiting...")
-
+            print("Exiting...")
 
 run_script()
