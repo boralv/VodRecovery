@@ -293,7 +293,6 @@ def bulk_vod_recovery():
         else:
             print("No VODs found using current domain list." + "\n")
 
-
 def get_valid_clips_urls(clip_list, reps):
     full_url_list, valid_url_list = [], []
     total_counter, valid_counter = 0, 0
@@ -403,8 +402,7 @@ def bulk_clip_recovery():
     user_option = input("Do you want to download all clips recovered (Y/N)? ")
     for vod, duration in parse_clip_csv_file(file_path).items():
         vod_counter += 1
-        print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(
-            len(parse_clip_csv_file(file_path))))
+        print("Processing Twitch VOD... " + str(vod) + " - " + str(vod_counter) + " of " + str(len(parse_clip_csv_file(file_path))))
         original_vod_url_list = get_all_clip_urls(vod, duration)
         rs = (grequests.head(u) for u in original_vod_url_list)
         for result in grequests.imap(rs, size=100):
@@ -422,7 +420,6 @@ def bulk_clip_recovery():
             else:
                 continue
         if valid_counter != 0:
-            bool_download = input("Do you want to download the recovered clips (Y/N): ")
             if user_option.upper() == "Y":
                 download_clips(get_default_directory(), streamer, vod)
             else:
