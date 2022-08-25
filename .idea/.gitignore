@@ -1,4 +1,4 @@
 # Default ignored files
-shelf/
+/shelf/
 /workspace.xml
-*/twitch-auth.json
+./twitch-auth.json
