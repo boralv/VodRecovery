@@ -119,8 +119,7 @@ def return_file_contents(directory, streamer, vod_id):
 def get_all_urls(streamer, vod_id, timestamp):
     vod_url_list = []
     for seconds in range(60):
-        epoch_timestamp = ((format_timestamp(timestamp) + timedelta(seconds=seconds)) - datetime.datetime(1970, 1,
-                                                                                                          1)).total_seconds()
+        epoch_timestamp = ((format_timestamp(timestamp) + timedelta(seconds=seconds)) - datetime.datetime(1970, 1, 1)).total_seconds()
         base_url = streamer + "_" + vod_id + "_" + str(int(epoch_timestamp))
         hashed_base_url = str(hashlib.sha1(base_url.encode('utf-8')).hexdigest())[:20]
         for domain in domains:
@@ -134,6 +133,8 @@ def get_valid_urls(url_list):
     for result in grequests.imap(rs, size=100):
         if result.status_code == 200:
             valid_url_list.append(result.url)
+            # Speeds up recovery significantly
+            break
     return valid_url_list
 
 
@@ -205,7 +206,6 @@ def get_segments(url):
         unmuted_vod_file.close()
     return segment_list
 
-
 def check_segment_availability(segments):
     valid_segment_counter = 0
     all_segments = []
@@ -218,11 +218,12 @@ def check_segment_availability(segments):
     return valid_segment_counter
 
 def check_segments(url):
-    print(str(check_segment_availability(get_segments(url))) + " of " + str(len(segments)) + " segments are valid.")
+    segments = get_segments(url)
+    print(str(check_segment_availability(segments)) + " of " + str(len(segments)) + " segments are valid.")
     remove_file(generate_vod_filename(parse_m3u8_link(url)[0], parse_m3u8_link(url)[1]))
 
 def get_streamer_name():
-    streamer_name = input("Enter streamer name: ").lower().strip()
+    streamer_name = input("Enter streamer name: ")
     if live == 1:
         recover_live(streamer_name)
     else:
@@ -258,19 +259,19 @@ def recover_vod_manual(streamer_name):
     recover_vod(streamer_name, vodID, timestamp)
 
 def recover_vod(streamer_name, vodID, timestamp):
-    print("VOD is " + str(get_vod_age(timestamp).days) + " days old. If the vod is older than 60 days chances of recovery are slim.")
+    print("VOD is " + str(get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim.")
     valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
     # print(len(valid_url_list), "VODs found")
     if len(valid_url_list) > 0:
         print(valid_url_list[0])
         if vod_is_muted(valid_url_list[0]):
             print("VOD contains muted segments")
-            user_input = input("Would you like to unmute the vod (Y/N): ")
-            if user_input.upper() == "Y":
+            user_option = input("Would you like to unmute the vod (Y/N): ")
+            if user_option.upper() == "Y":
                 unmute_vod(valid_url_list[0])
         else:
             print("VOD does NOT contain muted segments")
-        user_input = input("Would you like to check if segments are valid (Y/N): ")
+        user_option = input("Would you like to check if segments are valid (Y/N): ")
         if user_option.upper() == "Y":
             check_segments(valid_url_list[0])
     else:
