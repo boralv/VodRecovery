@@ -6,12 +6,7 @@ import os
 import grequests
 import requests
 import json
-
-# TODO: Timezone formatting (done)
-#       Add :00 to timestamp (done)
-#       Try to recover VOD of any livestream (done)
-#       
-
+ 
 domains = ["https://vod-secure.twitch.tv/",
 "https://vod-metro.twitch.tv/",
 "https://vod-pop-secure.twitch.tv/",
