@@ -30,10 +30,8 @@ def return_main_menu():
     menu = "\n" + "1) Recover Live" + "\n" + "2) Recover VOD" + "\n" + "3) Recover Clips" + "\n" + "4) Unmute an M3U8 file" + "\n" + "5) Check M3U8 Segments" + "\n" + "6) Exit" + "\n"
     print(menu)
 
-
 def get_default_directory():
     return os.path.expanduser("~\\Documents\\")
-
 
 def generate_log_filename(directory, streamer, vod_id):
     file_path = os.path.join(directory + "\\" + streamer + "_" + vod_id + "_log.txt")
@@ -42,7 +40,6 @@ def generate_log_filename(directory, streamer, vod_id):
 def generate_vod_filename(streamer, vod_id):
     vod_filename = get_default_directory() + "VodRecovery_" + streamer + "_" + vod_id + ".m3u8"
     return vod_filename
-
 
 def remove_file(file_path):
     if os.path.exists(file_path):
@@ -57,7 +54,6 @@ def format_timestamp(timestamp):
     formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
     return formatted_date
 
-
 def get_vod_age(timestamp):
     vod_age = datetime.datetime.today() - format_timestamp(timestamp)
     if vod_age.days <= 0:
@@ -65,19 +61,15 @@ def get_vod_age(timestamp):
     else:
         return vod_age.days
 
-
 def vod_is_muted(url):
     return bool("unmuted" in requests.get(url).text)
-
 
 def get_duration(hours, minutes):
     return (int(hours) * 60) + int(minutes)
 
-
 def get_reps(duration):
     reps = ((duration * 60) + 2000) * 2
     return reps
-
 
 def get_all_clip_urls(vod_id, reps):
     first_clip_list = ["https://clips-media-assets2.twitch.tv/" + vod_id + "-offset-" + str(i) + ".mp4" for i in
@@ -102,19 +94,16 @@ def get_all_clip_urls(vod_id, reps):
         print("Invalid option! Returning to main menu.")
         return
 
-
 def parse_m3u8_link(url):
     streamer = url.split("_")[1]
     vod_id = url.split("_")[3].split("/")[0]
     return streamer, vod_id
-
 
 def return_file_contents(directory, streamer, vod_id):
     with open(generate_log_filename(directory, streamer, vod_id)) as f:
         content = f.readlines()
         content = [x.strip() for x in content]
     return content
-
 
 def get_all_urls(streamer, vod_id, timestamp):
     vod_url_list = []
@@ -126,7 +115,6 @@ def get_all_urls(streamer, vod_id, timestamp):
             vod_url_list.append(domain + hashed_base_url + "_" + base_url + "/chunked/index-dvr.m3u8")
     return vod_url_list
 
-
 def get_valid_urls(url_list):
     valid_url_list = []
     rs = (grequests.head(u) for u in url_list)
@@ -136,7 +124,6 @@ def get_valid_urls(url_list):
             # Speeds up recovery significantly
             break
     return valid_url_list
-
 
 def unmute_vod(url):
     file_contents = []
@@ -162,7 +149,6 @@ def unmute_vod(url):
                 vod_file.write(segment)
     vod_file.close()
     print(os.path.basename(vod_file_path) + " Has been unmuted. File can be found in " + vod_file_path)
-
 
 def get_segments(url):
     counter = 0
@@ -335,7 +321,6 @@ def recover_all_clips():
         print("No clips found! Returning to main menu.")
         return
 
-
 def parse_clip_csv_file(file_path):
     vod_info_dict = {}
     csv_file = open(file_path, "r+")
@@ -368,7 +353,6 @@ def parse_vod_csv_file(file_path):
                                       line.partition("stream/")[2].split(",")[0]})
     csv_file.close()
     return vod_info_dict
-
 
 def get_random_clips():
     vod_id = input("Enter VOD ID: ")
