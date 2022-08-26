@@ -323,11 +323,12 @@ def parse_clip_csv_file(file_path):
     lines = csv_file.readlines()[1:]
     for line in lines:
         if line.strip():
-            filtered_string = line.partition("stream/")[2]
-            final_string = filtered_string.split(",")
-            if int(final_string[1]) != 0:
-                reps = ((int(final_string[1]) * 60) + 2000) * 2
-                vod_info_dict.update({final_string[0]: reps})
+            filtered_string = line.partition("stream/")[2].replace('"', "")
+            vod_id = filtered_string.split(",")[0]
+            duration = filtered_string.split(",")[1]
+            if vod_id != 0:
+                reps = get_reps(int(duration))
+                vod_info_dict.update({vod_id: reps})
             else:
                 pass
     csv_file.close()
@@ -346,9 +347,11 @@ def parse_vod_csv_file(file_path):
             year = line.split(",")[1].split(" ")[3]
             timestamp = line.split(",")[1].split(" ")[4]
             stream_datetime = day + " " + month + " " + year + " " + timestamp
-            vod_info_dict.update({datetime.datetime.strftime(
-                datetime.datetime.strptime(stream_datetime.strip() + ":00", "%d %B %Y %H:%M:%S"), "%Y-%m-%d %H:%M:%S"):
-                                      line.partition("stream/")[2].split(",")[0]})
+            vod_id = line.partition("stream/")[2].split(",")[0].replace('"', "")
+            stream_date = datetime.datetime.strftime(
+                datetime.datetime.strptime(stream_datetime.strip().replace('"', "") + ":00", "%d %B %Y %H:%M:%S"),
+                "%Y-%m-%d %H:%M:%S")
+            vod_info_dict.update({stream_date: vod_id})
     csv_file.close()
     return vod_info_dict
 
