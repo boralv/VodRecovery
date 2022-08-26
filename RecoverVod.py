@@ -8,6 +8,7 @@ import grequests
 import requests
 import json
 # TODO: Refactor getting segments
+#       Download M3U8 files
 #       Simplify twitch authentication
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -29,7 +30,7 @@ domains = ["https://vod-secure.twitch.tv/",
            "https://d3aqoihi2n8ty8.cloudfront.net/"]
 
 def return_main_menu():
-    menu = "\n" + "1) Recover Live" + "\n" + "2) Recover VOD" + "\n" + "3) Recover Clips" + "\n" + "4) Unmute an M3U8 file" + "\n" + "5) Check M3U8 Segments" + "\n" + "6) Exit" + "\n"
+    menu = "\n" + "1) Recover Live" + "\n" + "2) Recover VOD" + "\n" + "3) Recover Clips" + "\n" + "4) Download/Unmute an M3U8 file" + "\n" + "5) Check M3U8 Segments" + "\n" + "6) Exit" + "\n"
     print(menu)
 
 def get_default_directory():
@@ -465,10 +466,7 @@ def run_script():
                 print("Invalid option! Returning to main menu.")
         elif menu == 4:
             url = input("Enter M3U8 Link: ")
-            if vod_is_muted(url):
-                unmute_vod(url)
-            else:
-                print("VOD does NOT contain muted segments")
+            unmute_vod(url)
         elif menu == 5:
             url = input("Enter M3U8 Link: ")
             check_segments(url)
