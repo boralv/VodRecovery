@@ -211,13 +211,28 @@ def get_streamer_name():
     return streamer_name
 
 def recover_live():
+    file_path = "twitch-auth.json"
+    with open(file_path, "a") as auth_file:
+        if os.stat(file_path).st_size == 0:
+            user_option = input("Do you want to authenticate with Twitch? (Y/N): ")
+            if user_option.upper() == "Y":
+                client_id = input("Client ID: ")
+                token = input("Access Token: ")
+                auth = {
+                    "Client-Id": client_id,
+                    "Authorization": "Bearer " + token
+                }
+                json_object = json.dumps(auth, indent=4)
+                auth_file.write(json_object)
+            else:
+                return
+    url = "https://api.twitch.tv/helix/streams"
+    streamer_name = get_streamer_name()
     params = {
         'user_login': streamer_name,
     }
-    with open("twitch-auth.json", "r") as h:
-        headers = json.load(h)
-    h.close()
-    url = "https://api.twitch.tv/helix/streams"
+    with open(file_path, "r") as auth_file:
+        headers = json.load(auth_file)
     r = requests.get(url=url, params=params, headers=headers)
     if r.status_code == 200:
         dict = r.json()
