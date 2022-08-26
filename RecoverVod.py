@@ -443,9 +443,7 @@ def run_script():
         return_main_menu()
         menu = int(input("Please choose an option: "))
         global live
-        if menu == 6:
-            exit("Exiting...")
-        elif menu == 1:
+        if menu == 1:
             live = 1
             get_streamer_name()
         elif menu == 2:
