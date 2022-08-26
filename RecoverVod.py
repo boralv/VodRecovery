@@ -273,7 +273,7 @@ def recover_vod(streamer_name, vodID, timestamp):
         print("No VODs found using current domain list." + "\n")
 
 def bulk_vod_recovery():
-    streamer_name = input("Enter streamer name: ")
+    streamer_name = get_streamer_name()
     file_path = input("Enter full path of sullygnome CSV file: ").replace('"', '')
     for timestamp, vodID in parse_vod_csv_file(file_path).items():
         print("Recovering VOD... ", vodID)
@@ -304,7 +304,7 @@ def get_valid_clips_urls(clip_list, reps):
     return valid_url_list
 
 def recover_all_clips():
-    streamer_name = input("Enter streamer name: ")
+    streamer_name = get_streamer_name()
     vodID = input("Enter VOD ID: ")
     hours = input("Enter hour value: ")
     minutes = input("Enter minute value: ")
