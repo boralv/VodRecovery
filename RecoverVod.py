@@ -2,7 +2,6 @@ import random
 import datetime
 from datetime import timedelta
 import hashlib
-from concurrent.futures import ThreadPoolExecutor
 import os
 import grequests
 import requests
@@ -357,29 +356,25 @@ def parse_vod_csv_file(file_path):
 
 
 def get_random_clips():
+    counter = 0
     vod_id = input("Enter vod id: ")
     hours = input("Enter Hours: ")
     minutes = input("Enter Minutes: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
     print("Total Number of Urls: " + str(len(full_url_list)))
-    with ThreadPoolExecutor(max_workers=100) as pool:
-        url_list = []
-        max_url_list_length = 500
-        current_list = full_url_list
-        for i in range(0, len(full_url_list), max_url_list_length):
-            batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(requests.head, batch))
-            for index, elem in enumerate(response_list):
-                url_list.append(elem)
-                if elem.status_code == 200:
-                    print(elem.url)
-                    user_option = input("Do you want another url (Y/N): ")
-                    if user_option.upper() == "Y":
-                        if response_list[index + 1].status_code == 200:
-                            print(response_list[index + 1].url)
-                    else:
-                        return
+    rs = (grequests.head(u) for u in full_url_list)
+    for result in grequests.imap(rs, size=100):
+        if result.status_code == 200:
+            counter += 1
+            if counter == 1:
+                print(result.url)
+                user_option = input("Do you want another url (Y/N): ")
+                if user_option.upper() == "Y":
+                    continue
+                else:
+                    return
+        counter = 0
 
 
 def bulk_clip_recovery():
