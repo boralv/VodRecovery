@@ -8,7 +8,6 @@ import grequests
 import requests
 import json
 # TODO: Refactor getting segments
-#       Download M3U8 files
 #       Simplify twitch authentication
 
 domains = ["https://vod-secure.twitch.tv/",
@@ -268,11 +267,10 @@ def bulk_vod_recovery():
         print("Recovering VOD... ", vodID)
         valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
         if len(valid_url_list) > 0:
+            print(valid_url_list[0])
             if vod_is_muted(valid_url_list[0]):
-                print(valid_url_list[0])
                 print("VOD contains muted segments")
             else:
-                print(valid_url_list[0])
                 print("VOD does NOT contain muted segments")
         else:
             print("No VODs found using current domain list." + "\n")
