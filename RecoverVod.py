@@ -6,7 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 import grequests
 import requests
-import json    
+import json
+# TODO: Refactor getting segments
+#       Simplify twitch authentication
 
 domains = ["https://vod-secure.twitch.tv/",
            "https://vod-metro.twitch.tv/",
