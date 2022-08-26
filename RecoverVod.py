@@ -208,12 +208,9 @@ def check_segments(url):
 
 def get_streamer_name():
     streamer_name = input("Enter streamer name: ")
-    if live == 1:
-        recover_live(streamer_name)
-    else:
-        recover_vod_manual(streamer_name)
+    return streamer_name
 
-def recover_live(streamer_name):
+def recover_live():
     params = {
         'user_login': streamer_name,
     }
@@ -236,7 +233,8 @@ def recover_live(streamer_name):
         print("ERROR: " + str(r.status_code) + " - " + str(r.reason))
         pass
 
-def recover_vod_manual(streamer_name):
+def recover_vod_manual():
+    streamer_name = get_streamer_name()
     vodID = input("Enter stream ID: ").strip()
     timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
     recover_vod(streamer_name, vodID, timestamp)
@@ -438,15 +436,12 @@ def run_script():
     while menu < 6:
         return_main_menu()
         menu = int(input("Please choose an option: "))
-        global live
         if menu == 1:
-            live = 1
-            get_streamer_name()
+            recover_live()
         elif menu == 2:
             vod_type = int(input("1) Recover VOD" + "\n" + "2) Recover VODs from SullyGnome export" + "\n" + "Enter what type of VOD recovery: "))
             if vod_type == 1:
-                live = 0
-                get_streamer_name()
+                recover_vod_manual()
             elif vod_type == 2:
                 bulk_vod_recovery()
             else:
