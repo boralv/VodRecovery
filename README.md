@@ -13,6 +13,15 @@
 4. Install required packages ``` pip install -r requirements.txt ``` (Run in terminal)
 5. Run Script :)
 
+or
+
+```
+git clone https://github.com/boralv/VodRecovery
+cd vodrecovery
+pip install -r requirements.txt
+python recovervod.py
+```
+
 ## Script Notes
 
 * The script CANNOT recover every single vod. The script can only recover vods that still exist on the twitch vod domains.
