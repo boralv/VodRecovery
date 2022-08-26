@@ -19,6 +19,7 @@
 * Due to twitch's deletion process vods are typically only available up to 60 days old. The script will notify you if its older then 60 days.
 * The script uses UTC timezone as default when recovering vods.
 * Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
+* To recover a VOD of a livestream you need to provide a Twitch Client ID and an Access Token. You can use [twitchtokengenerator.com](https://twitchtokengenerator.com) for example.
 
 ## Analytical Sites
 
