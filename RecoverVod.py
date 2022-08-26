@@ -95,7 +95,7 @@ def get_all_clip_urls(vod_id, reps):
 
 def parse_m3u8_link(url):
     streamer = url.split("_")[1]
-    vod_id = url.split("_")[3].split("/")[0]
+    vod_id = url.split("_")[2].split("/")[0]
     return streamer, vod_id
 
 def return_file_contents(directory, streamer, vod_id):
