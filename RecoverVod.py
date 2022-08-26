@@ -58,10 +58,7 @@ def format_timestamp(timestamp):
 
 def get_vod_age(timestamp):
     vod_age = datetime.datetime.today() - format_timestamp(timestamp)
-    if vod_age.days <= 0:
-        return 0
-    else:
-        return vod_age.days
+    return 0 if vod_age.days <= 0 else vod_age.days
 
 def vod_is_muted(url):
     return bool("unmuted" in requests.get(url).text)
