@@ -218,8 +218,9 @@ def recover_live(streamer_name):
     params = {
         'user_login': streamer_name,
     }
-    h = open("twitch-auth.json", "r")
-    headers = json.load(h)
+    with open("twitch-auth.json", "r") as h:
+        headers = json.load(h)
+    h.close()
     url = "https://api.twitch.tv/helix/streams"
     r = requests.get(url=url, params=params, headers=headers)
     if r.status_code == 200:
@@ -235,7 +236,6 @@ def recover_live(streamer_name):
     else:
         print("ERROR: " + str(r.status_code) + " - " + str(r.reason))
         pass
-    h.close()
 
 def recover_vod_manual(streamer_name):
     vodID = input("Enter stream ID: ").strip()
