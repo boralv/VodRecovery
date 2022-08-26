@@ -7,7 +7,6 @@ import os
 import grequests
 import requests
 import json
-# TODO: Simplify twitch authentication
 
 domains = ["https://vod-secure.twitch.tv/",
            "https://vod-metro.twitch.tv/",
