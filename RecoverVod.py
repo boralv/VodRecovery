@@ -7,8 +7,7 @@ import os
 import grequests
 import requests
 import json
-# TODO: Refactor getting segments
-#       Simplify twitch authentication
+# TODO: Simplify twitch authentication
 
 domains = ["https://vod-secure.twitch.tv/",
            "https://vod-metro.twitch.tv/",
