@@ -435,6 +435,7 @@ def download_clips(directory, streamer, vod_id):
             pass
 
 def run_script():
+    print("\n" + "WELCOME TO VOD RECOVERY")
     menu = 0
     while menu < 6:
         return_main_menu()
