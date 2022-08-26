@@ -50,7 +50,7 @@ def format_timestamp(timestamp):
     # Process RFC 3339 format
     timestamp = timestamp.replace('T', ' ')
     timestamp = timestamp.replace('Z', '')
-    if timestamp.count(":")==1:
+    if timestamp.count(":") == 1:
         timestamp = timestamp + ":00"
     formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
     return formatted_date
