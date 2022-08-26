@@ -46,6 +46,14 @@ def generate_vod_filename(streamer, vod_id):
     return vod_filename
 
 
+def generate_website_links(streamer, vod_id):
+    website_list = ["https://sullygnome.com/channel/" + streamer + "/stream/" + vod_id,
+                    "https://twitchtracker.com/" + streamer + "/streams/" + vod_id,
+                    "https://streamscharts.com/channels/" + streamer + "/streams/" + vod_id]
+
+    return website_list
+
+
 def remove_file(file_path):
     if os.path.exists(file_path):
         return os.remove(file_path)
@@ -88,7 +96,8 @@ def get_all_clip_urls(vod_id, reps):
     third_clip_list = ["https://clips-media-assets2.twitch.tv/vod-" + vod_id + "-offset-" + str(i) + ".mp4" for i in
                        range(reps) if i % 2 == 0]
 
-    clip_format = input("What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
+    clip_format = input(
+        "What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
 
     if clip_format == "1":
         return first_clip_list
@@ -241,7 +250,10 @@ def recover_vod():
         else:
             print(valid_url_list[0] + "\n" + "Vod does NOT contain muted segments")
     else:
-        print("No vods found using current domain list." + "\n")
+        print(
+            "No vods found using current domain list. " + "\n" + "See the following links if you would like to check the other sites: " + "\n")
+        for website in generate_website_links(streamer_name, vodID):
+            print(website)
 
 
 def bulk_vod_recovery():
