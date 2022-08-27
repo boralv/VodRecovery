@@ -1,8 +1,8 @@
-import random
 import datetime
-from datetime import timedelta
 import hashlib
 import os
+import random
+from datetime import timedelta
 import grequests
 import requests
 
@@ -340,8 +340,10 @@ def parse_vod_csv_file(file_path):
     lines = csv_file.readlines()[1:]
     for line in lines:
         if line.strip():
-            day = line.split(",")[1].split(" ")[1].replace("th", "").replace("st", "").replace("nd", "").replace("rd",
-                                                                                                                 "")
+            if len(line.split(",")[1].split(" ")[1]) > 3:
+                day = line.split(",")[1].split(" ")[1][:2]
+            else:
+                day = line.split(",")[1].split(" ")[1][:1]
             month = line.split(",")[1].split(" ")[2]
             year = line.split(",")[1].split(" ")[3]
             timestamp = line.split(",")[1].split(" ")[4]
