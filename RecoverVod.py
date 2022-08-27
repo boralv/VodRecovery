@@ -219,7 +219,7 @@ def recover_live():
                 token = input("Access Token: ")
                 auth = {
                     "Client-Id": client_id,
-                    "Authorization": "Bearer " + token
+                    "Authorization": "Bearer {token}"
                 }
                 json_object = json.dumps(auth, indent=4)
                 auth_file.write(json_object)
