@@ -125,7 +125,6 @@ def get_valid_urls(url_list):
     for result in grequests.imap(rs, size=100):
         if result.status_code == 200:
             valid_url_list.append(result.url)
-            # Speeds up recovery significantly
             break
     return valid_url_list
 
