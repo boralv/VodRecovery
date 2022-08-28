@@ -2,8 +2,8 @@
 
 * Created By: ItIckeYd
 * Initial Release: May 3rd, 2022
-* The script is used to retrieve sub-only and deleted videos from twitch.
-* Credits to daylamtayari - [TwitchRecover](https://github.com/TwitchRecover/TwitchRecover) repository helped with the logic to recover twitch videos.
+* The script is used to retrieve sub-only and deleted videos from Twitch.
+* Credits to daylamtayari - [TwitchRecover](https://github.com/TwitchRecover/TwitchRecover) repository helped with the logic to recover Twitch videos.
 
 ## Script Installation
 
@@ -24,11 +24,11 @@ python recovervod.py
 
 ## Script Notes
 
-* The script CANNOT recover every single vod. The script can only recover vods that still exist on the twitch vod domains.
+* The script CANNOT recover every single vod. The script can only recover vods that still exist on the Twitch VOD domains.
 * Due to twitch's deletion process vods are typically only available up to 60 days old. The script will notify you if its older then 60 days.
 * The script uses UTC timezone as default when recovering vods.
-* Ensure to enter the seconds value as 00 when running the script as the script brute forces the seconds value automatically.
-* To recover a VOD of a livestream you need to provide a Twitch Client ID and an Access Token. You can use [twitchtokengenerator.com](https://twitchtokengenerator.com) for example.
+* When entering the timestamp you can omit the seconds as the script brute forces the seconds value automatically.
+* To recover a VOD of a livestream you need to provide a Twitch Client ID and an Access Token, which are stored locally in `twitch-auth.json`. You can use [twitchtokengenerator.com](https://twitchtokengenerator.com) for example.
 
 ## Analytical Sites
 
