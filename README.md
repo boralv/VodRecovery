@@ -15,7 +15,7 @@
 
 or
 
-```git
+```bash
 git clone https://github.com/boralv/VodRecovery
 cd vodrecovery
 pip install -r requirements.txt
