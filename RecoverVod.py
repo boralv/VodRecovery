@@ -1,9 +1,8 @@
-import random
 import datetime
-from datetime import timedelta
 import hashlib
-from concurrent.futures import ThreadPoolExecutor
 import os
+import random
+from datetime import timedelta
 import grequests
 import requests
 import json
@@ -40,6 +39,13 @@ def generate_log_filename(directory, streamer, vod_id):
 def generate_vod_filename(streamer, vod_id):
     vod_filename = get_default_directory() + "VodRecovery_" + streamer + "_" + vod_id + ".m3u8"
     return vod_filename
+
+
+def generate_website_links(streamer, vod_id):
+    website_list = ["https://sullygnome.com/channel/" + streamer + "/stream/" + vod_id,
+                    "https://twitchtracker.com/" + streamer + "/streams/" + vod_id,
+                    "https://streamscharts.com/channels/" + streamer + "/streams/" + vod_id]
+    return website_list
 
 def remove_file(file_path):
     if os.path.exists(file_path):
@@ -79,7 +85,8 @@ def get_all_clip_urls(vod_id, reps):
     third_clip_list = ["https://clips-media-assets2.twitch.tv/vod-" + vod_id + "-offset-" + str(i) + ".mp4" for i in
                        range(reps) if i % 2 == 0]
 
-    clip_format = input("What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
+    clip_format = input(
+        "What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
 
     if clip_format == "1":
         return first_clip_list
@@ -269,7 +276,10 @@ def recover_vod(streamer_name, vodID, timestamp):
         if user_option.upper() == "Y":
             check_segments(valid_url_list[0])
     else:
-        print("No VODs found using current domain list." + "\n")
+        print("No VODs found using current domain list.\n"
+              "See the following links if you would like to check the other sites: \n")
+        for website in generate_website_links(streamer_name, vodID):
+            print(website)
 
 def bulk_vod_recovery():
     streamer_name = get_streamer_name()
@@ -334,11 +344,12 @@ def parse_clip_csv_file(file_path):
     lines = csv_file.readlines()[1:]
     for line in lines:
         if line.strip():
-            filtered_string = line.partition("stream/")[2]
-            final_string = filtered_string.split(",")
-            if int(final_string[1]) != 0:
-                reps = ((int(final_string[1]) * 60) + 2000) * 2
-                vod_info_dict.update({final_string[0]: reps})
+            filtered_string = line.partition("stream/")[2].replace('"', "")
+            vod_id = filtered_string.split(",")[0]
+            duration = filtered_string.split(",")[1]
+            if vod_id != 0:
+                reps = get_reps(int(duration))
+                vod_info_dict.update({vod_id: reps})
             else:
                 pass
     csv_file.close()
@@ -350,41 +361,42 @@ def parse_vod_csv_file(file_path):
     lines = csv_file.readlines()[1:]
     for line in lines:
         if line.strip():
-            day = line.split(",")[1].split(" ")[1].replace("th", "").replace("st", "").replace("nd", "").replace("rd","")
+            if len(line.split(",")[1].split(" ")[1]) > 3:
+                day = line.split(",")[1].split(" ")[1][:2]
+            else:
+                day = line.split(",")[1].split(" ")[1][:1]
             month = line.split(",")[1].split(" ")[2]
             year = line.split(",")[1].split(" ")[3]
             timestamp = line.split(",")[1].split(" ")[4]
             stream_datetime = day + " " + month + " " + year + " " + timestamp
-            vod_info_dict.update({datetime.datetime.strftime(
-                datetime.datetime.strptime(stream_datetime.strip() + ":00", "%d %B %Y %H:%M:%S"), "%Y-%m-%d %H:%M:%S"):
-                                      line.partition("stream/")[2].split(",")[0]})
+            vod_id = line.partition("stream/")[2].split(",")[0].replace('"', "")
+            stream_date = datetime.datetime.strftime(
+                datetime.datetime.strptime(stream_datetime.strip().replace('"', "") + ":00", "%d %B %Y %H:%M:%S"),
+                "%Y-%m-%d %H:%M:%S")
+            vod_info_dict.update({stream_date: vod_id})
     csv_file.close()
     return vod_info_dict
 
 def get_random_clips():
+    counter = 0
     vod_id = input("Enter VOD ID: ")
     hours = input("Enter Hours: ")
     minutes = input("Enter Minutes: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
     print("Total Number of URLs: " + str(len(full_url_list)))
-    with ThreadPoolExecutor(max_workers=100) as pool:
-        url_list = []
-        max_url_list_length = 500
-        current_list = full_url_list
-        for i in range(0, len(full_url_list), max_url_list_length):
-            batch = current_list[i:i + max_url_list_length]
-            response_list = list(pool.map(requests.head, batch))
-            for index, elem in enumerate(response_list):
-                url_list.append(elem)
-                if elem.status_code == 200:
-                    print(elem.url)
-                    user_option = input("Do you want another URL (Y/N): ")
-                    if user_option.upper() == "Y":
-                        if response_list[index + 1].status_code == 200:
-                            print(response_list[index + 1].url)
-                    else:
-                        return
+    rs = (grequests.head(u) for u in full_url_list)
+    for result in grequests.imap(rs, size=100):
+        if result.status_code == 200:
+            counter += 1
+            if counter == 1:
+                print(result.url)
+                user_option = input("Do you want another URL (Y/N): ")
+                if user_option.upper() == "Y":
+                    continue
+                else:
+                    return
+        counter = 0
 
 def bulk_clip_recovery():
     vod_counter, total_counter, valid_counter, iteration_counter = 0, 0, 0, 0
