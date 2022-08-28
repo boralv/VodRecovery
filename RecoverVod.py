@@ -246,7 +246,7 @@ def recover_live():
             timestamp = dict["data"][0]["started_at"]
             recover_vod(streamer_name, vodID, timestamp)
         else:
-            user_option = input("Streamer not live! Do you want to recover past VOD? (Y/N): ")
+            user_option = input(f"{streamer_name} is not live! Do you want to recover past VOD? (Y/N): ")
             if user_option.upper() == "Y":
                 recover_vod_manual(streamer_name)
     else:
