@@ -260,7 +260,6 @@ def recover_vod_manual():
     recover_vod(streamer_name, vodID, timestamp)
 
 def recover_vod(streamer_name, vodID, timestamp):
-    print("VOD is " + str(get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim.")
     valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
     if len(valid_url_list) > 0:
         print(valid_url_list[0])
