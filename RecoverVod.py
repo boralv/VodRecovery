@@ -227,7 +227,7 @@ def check_segment_availability(segments):
 def recover_vod():
     streamer_name = input("Enter streamer name: ")
     vodID = input("Enter vod id: ")
-    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ")
+    timestamp = input("Enter VOD start time (YYYY-MM-DD HH:MM:SS): ")
     print("Vod is " + str(
         get_vod_age(timestamp)) + " days old. If the vod is older than 60 days chances of recovery are slim." + "\n")
     valid_url_list = get_valid_urls(get_all_urls(streamer_name, vodID, timestamp))
@@ -292,8 +292,8 @@ def get_valid_clips_urls(clip_list, reps):
 def recover_all_clips():
     streamer_name = input("Enter streamer name: ")
     vodID = input("Enter vod id: ")
-    hours = input("Enter hour value: ")
-    minutes = input("Enter minute value: ")
+    hours = input("Enter stream duration hour value: ")
+    minutes = input("Enter stream duration minute value: ")
     duration = get_duration(hours, minutes)
     reps = get_reps(duration)
     valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID, reps), reps)
@@ -360,8 +360,8 @@ def parse_vod_csv_file(file_path):
 def get_random_clips():
     counter = 0
     vod_id = input("Enter vod id: ")
-    hours = input("Enter Hours: ")
-    minutes = input("Enter Minutes: ")
+    hours = input("Enter stream duration hour value: ")
+    minutes = input("Enter stream duration minute value: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
     print("Total Number of Urls: " + str(len(full_url_list)))
@@ -381,7 +381,7 @@ def get_random_clips():
 
 def bulk_clip_recovery():
     vod_counter, total_counter, valid_counter, iteration_counter = 0, 0, 0, 0
-    streamer = input("Enter Streamer: ")
+    streamer = input("Enter streamer name: ")
     file_path = input("Enter full path of sullygnome CSV file: ").replace('"', '')
     user_option = input("Do you want to download all clips recovered (Y/N)? ")
     for vod, duration in parse_clip_csv_file(file_path).items():
@@ -451,7 +451,7 @@ def run_script():
             exit()
         elif menu == 1:
             vod_type = int(input(
-                "Enter what type of vod recovery: " + "\n" + "1) Recover Vod" + "\n" + "2) Recover vods from SullyGnome export" + "\n"))
+                "Enter what type of vod recovery: " + "\n" + "1) Recover Vod" + "\n" + "2) Recover vods from SullyGnome CSV export" + "\n"))
             if vod_type == 1:
                 recover_vod()
             elif vod_type == 2:
@@ -460,7 +460,7 @@ def run_script():
                 print("Invalid option! Returning to main menu.")
         elif menu == 2:
             clip_type = int(input(
-                "Enter what type of clip recovery: " + "\n" + "1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome export" + "\n"))
+                "Enter what type of clip recovery: " + "\n" + "1) Recover all clips from a single VOD" + "\n" + "2) Find random clips from a single VOD" + "\n" + "3) Bulk recover clips from SullyGnome CSV export" + "\n"))
             if clip_type == 1:
                 recover_all_clips()
             elif clip_type == 2:
