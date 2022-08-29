@@ -258,7 +258,7 @@ def recover_live():
 
 def recover_vod_manual(streamer_name):
     vodID = input("Enter stream ID: ").strip()
-    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM): ").strip()
+    timestamp = input("Enter VOD start time (YYYY-MM-DD HH:MM): ").strip()
     recover_vod(streamer_name, vodID, timestamp)
 
 def recover_vod(streamer_name, vodID, timestamp):
@@ -315,8 +315,8 @@ def get_valid_clips_urls(clip_list, reps):
 def recover_all_clips():
     streamer_name = get_streamer_name()
     vodID = input("Enter VOD ID: ")
-    hours = input("Enter hour value: ")
-    minutes = input("Enter minute value: ")
+    hours = input("Enter stream duration hour value: ")
+    minutes = input("Enter stream duration minute value: ")
     duration = get_duration(hours, minutes)
     reps = get_reps(duration)
     valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID, reps), reps)
@@ -380,8 +380,8 @@ def parse_vod_csv_file(file_path):
 def get_random_clips():
     counter = 0
     vod_id = input("Enter VOD ID: ")
-    hours = input("Enter Hours: ")
-    minutes = input("Enter Minutes: ")
+    hours = input("Enter stream duration hour value: ")
+    minutes = input("Enter stream duration minute value: ")
     full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
     random.shuffle(full_url_list)
     print("Total Number of URLs: " + str(len(full_url_list)))
