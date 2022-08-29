@@ -253,8 +253,7 @@ def recover_live():
         print("ERROR: " + str(r.status_code) + " - " + str(r.reason))
         pass
 
-def recover_vod_manual():
-    streamer_name = get_streamer_name()
+def recover_vod_manual(streamer_name):
     vodID = input("Enter stream ID: ").strip()
     timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM): ").strip()
     recover_vod(streamer_name, vodID, timestamp)
@@ -398,7 +397,7 @@ def get_random_clips():
 
 def bulk_clip_recovery():
     vod_counter, total_counter, valid_counter, iteration_counter = 0, 0, 0, 0
-    streamer = input("Enter Streamer: ")
+    streamer = get_streamer_name()
     file_path = input("Enter full path of sullygnome CSV file: ").replace('"', '')
     user_option = input("Do you want to download all clips recovered (Y/N)? ")
     for vod, duration in parse_clip_csv_file(file_path).items():
@@ -465,7 +464,8 @@ def run_script():
         elif menu == 2:
             vod_type = int(input("1) Recover VOD" + "\n" + "2) Recover VODs from SullyGnome export" + "\n" + "Enter what type of VOD recovery: "))
             if vod_type == 1:
-                recover_vod_manual()
+                streamer_name = get_streamer_name()
+                recover_vod_manual(streamer_name)
             elif vod_type == 2:
                 bulk_vod_recovery()
             else:
