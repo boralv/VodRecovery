@@ -57,7 +57,10 @@ def format_timestamp(timestamp):
     timestamp = timestamp.replace('Z', '')
     if timestamp.count(":") == 1:
         timestamp = timestamp + ":00"
-    formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+    if any(c.isalpha() for c in timestamp):
+        formatted_date = datetime.datetime.strptime(timestamp, "%d %b %Y, %H:%M:%S")
+    else:
+        formatted_date = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
     return formatted_date
 
 def get_vod_age(timestamp):
