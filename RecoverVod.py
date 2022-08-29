@@ -256,7 +256,7 @@ def recover_live():
 def recover_vod_manual():
     streamer_name = get_streamer_name()
     vodID = input("Enter stream ID: ").strip()
-    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM:SS): ").strip()
+    timestamp = input("Enter VOD timestamp (YYYY-MM-DD HH:MM): ").strip()
     recover_vod(streamer_name, vodID, timestamp)
 
 def recover_vod(streamer_name, vodID, timestamp):
