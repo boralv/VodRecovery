@@ -83,30 +83,31 @@ def get_reps(duration):
     reps = ((duration * 60) + 2000) * 2
     return reps
 
-
-def get_all_clip_urls(vod_id, reps):
-    first_clip_list = ["https://clips-media-assets2.twitch.tv/" + vod_id + "-offset-" + str(i) + ".mp4" for i in
+def get_clip_format(vod_id, reps):
+    default_clip_list = ["https://clips-media-assets2.twitch.tv/" + vod_id + "-offset-" + str(i) + ".mp4" for i in
                        range(reps) if i % 2 == 0]
 
-    second_clip_list = [
+    alternate_clip_list = ["https://clips-media-assets2.twitch.tv/vod-" + vod_id + "-offset-" + str(i) + ".mp4" for i in
+                        range(reps) if i % 2 == 0]
+
+    archived_clip_list = [
         "https://clips-media-assets2.twitch.tv/" + vod_id + "-index-" + "%010g" % (int('000000000') + i) + ".mp4" for i
         in range(reps) if i % 2 == 0]
 
-    third_clip_list = ["https://clips-media-assets2.twitch.tv/vod-" + vod_id + "-offset-" + str(i) + ".mp4" for i in
-                       range(reps) if i % 2 == 0]
+    clip_format_dict = {}
 
-    clip_format = input(
-        "What clip url format would you like to use (format is NOT guaranteed for the time periods suggested)? " + "\n" + "1) Default - Most vods use this format" + "\n" + "2) Archived - common between 2016-2017" + "\n" + "3) Alternate - common between 2017-2019" + "\n")
+    clip_format_dict.update({"1": default_clip_list})
+    clip_format_dict.update({"2": alternate_clip_list})
+    clip_format_dict.update({"3": archived_clip_list})
 
-    if clip_format == "1":
-        return first_clip_list
-    elif clip_format == "2":
-        return second_clip_list
-    elif clip_format == "3":
-        return third_clip_list
-    else:
-        print("Invalid option! Returning to main menu.")
-        return
+    return clip_format_dict
+
+def get_all_clip_urls(clip_dict, clip_format):
+    full_url_list = []
+    for key, value in clip_dict.items():
+        if key in clip_format:
+            full_url_list += value
+    return full_url_list
 
 
 def parse_m3u8_link(url):
@@ -280,7 +281,7 @@ def get_valid_clips_urls(clip_list, reps):
         total_counter += 1
         full_url_list.append(result.url)
         if total_counter == 500:
-            print(str(len(full_url_list)) + " of " + str(round(reps / 2)))
+            print(str(len(full_url_list)) + " of " + str(round(reps)))
             total_counter = 0
         if result.status_code == 200:
             valid_counter += 1
@@ -294,9 +295,10 @@ def recover_all_clips():
     vodID = input("Enter vod id: ")
     hours = input("Enter stream duration hour value: ")
     minutes = input("Enter stream duration minute value: ")
+    clip_format = input("What clip url format would you like to use (IF multiple.. separate by spaces)? " + "\n" + "1) Default (Most vods)" + "\n" + "2) Alternate (2017 and up)" + "\n" + "3) Archived (June-August of 2016)" + "\n").split()
     duration = get_duration(hours, minutes)
     reps = get_reps(duration)
-    valid_clips = get_valid_clips_urls(get_all_clip_urls(vodID, reps), reps)
+    valid_clips = get_valid_clips_urls(get_all_clip_urls(get_clip_format(vodID, reps), clip_format), (reps*len(clip_format))/2)
     if len(valid_clips) >= 1:
         user_option = input("Do you want to log results to file (Y/N): ")
         if user_option.upper() == "Y":
@@ -362,7 +364,9 @@ def get_random_clips():
     vod_id = input("Enter vod id: ")
     hours = input("Enter stream duration hour value: ")
     minutes = input("Enter stream duration minute value: ")
-    full_url_list = (get_all_clip_urls(vod_id, get_reps(get_duration(hours, minutes))))
+    clip_format = input("What clip url format would you like to use (IF multiple.. separate by spaces)? " + "\n" + "1) Default (Most vods)" + "\n" + "2) Alternate (2017 and up)" + "\n" + "3) Archived (June-August of 2016)" + "\n").split()
+    reps = get_reps(get_duration(hours, minutes))
+    full_url_list = get_all_clip_urls(get_clip_format(vod_id, reps), clip_format)
     random.shuffle(full_url_list)
     print("Total Number of Urls: " + str(len(full_url_list)))
     rs = (grequests.head(u) for u in full_url_list)
@@ -384,11 +388,12 @@ def bulk_clip_recovery():
     streamer = input("Enter streamer name: ")
     file_path = input("Enter full path of sullygnome CSV file: ").replace('"', '')
     user_option = input("Do you want to download all clips recovered (Y/N)? ")
+    clip_format = input("What clip url format would you like to use (IF multiple.. separate by spaces)? " + "\n" + "1) Default (Most vods)" + "\n" + "2) Alternate (2017 and up)" + "\n" + "3) Archived (June-August of 2016)" + "\n").split()
     for vod, duration in parse_clip_csv_file(file_path).items():
         vod_counter += 1
         print("Processing Twitch Vod... " + str(vod) + " - " + str(vod_counter) + " of " + str(
             len(parse_clip_csv_file(file_path))))
-        original_vod_url_list = get_all_clip_urls(vod, duration)
+        original_vod_url_list = get_all_clip_urls(get_clip_format(vod, duration), clip_format)
         rs = (grequests.head(u) for u in original_vod_url_list)
         for result in grequests.imap(rs, size=100):
             total_counter += 1
